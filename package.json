@@ -1,0 +1,9 @@
+{
+  "name": "tongdao",
+  "author": "tongdao",
+  "devDependencies": {
+    "gulp": "latest",
+    "gulp-requirejs": "latest",
+    "webpack": "latest"
+  }
+}
