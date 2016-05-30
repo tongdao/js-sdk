@@ -1,5 +1,4 @@
-define(['DefaultOptions', 'Cookie', 'uuid', 'ua-parser-js', 'Request', 'Validator'], function (DEFAULT_OPTIONS, Cookie, UUID, UAParser, Request, Validator) {
-
+define(['./DefaultOptions', './Cookie', './uuid', './libs/ua-parser', './Request', './Validator'], function(DEFAULT_OPTIONS, Cookie, UUID, UAParser, Request, Validator) {
 	var IDENTIFY_EVENT = 'identify';
 	var TRACK_EVENT = 'track';
 	var unsentEvents = [];
@@ -51,7 +50,6 @@ define(['DefaultOptions', 'Cookie', 'uuid', 'ua-parser-js', 'Request', 'Validato
 
 	function _getUtmData(rawCookie, query) {
 		var cookie = rawCookie ? '?' + rawCookie.split('.').slice(-1)[0].replace(/\|/g, '&') : '';
-
 		var fetchParam = function (queryName, query, cookieName, cookie) {
 			return _getUtmParam(queryName, query) || _getUtmParam(cookieName, cookie);
 		};
@@ -70,7 +68,6 @@ define(['DefaultOptions', 'Cookie', 'uuid', 'ua-parser-js', 'Request', 'Validato
 		var results = regex.exec(query);
 		return results === null ? undefined : decodeURIComponent(results[1].replace(/\+/g, " "));
 	}
-
 
 	function init(appKey, opt_userId, opt_config, callback) {
 		_log('init');
@@ -97,29 +94,23 @@ define(['DefaultOptions', 'Cookie', 'uuid', 'ua-parser-js', 'Request', 'Validato
 				options.savedMaxCount = opt_config.savedMaxCount || options.savedMaxCount;
 				options.eventUploadPeriodMillis = opt_config.eventUploadPeriodMillis || options.eventUploadPeriodMillis;
 			}
-
 			Cookie.init({
 				expirationDays: options.cookieExpirationDays,
 				domain: options.domain
 			});
 			options.domain = Cookie.options().domain;
-
 			_loadCookieData();
-
 			var newUser = !!options.deviceId || true;
 			options.deviceId = (opt_config && opt_config.deviceId) || options.deviceId || UUID();
 			options.userId = opt_userId || options.userId || null;
 			options.cookieId = options.cookieId || options.deviceId;
-
 			_saveCookieData();
-
 			if (options.includeUtm) {
 				this._initUtmData();
 			}
 		} catch (e) {
 			_log('Error on init:' + e);
 		}
-
 		if (newUser) {
 			var eventProperties = {
 				'!device':{
@@ -134,10 +125,23 @@ define(['DefaultOptions', 'Cookie', 'uuid', 'ua-parser-js', 'Request', 'Validato
 			}
 			_logEvent(IDENTIFY_EVENT, null, eventProperties, callback);
 		}
-
 		window.onload = function() {
-			_openPage();
+			//_openPage();
 		}
+	}
+
+	function runQueuedFunctions(_q) {
+		if(!_q) {
+			return;
+		}
+		_log('queued: ' + _q.length);
+		for (var i = 0; i < _q.length; i++) {
+			var fn = this[_q[i][0]];
+			if (fn && typeof fn === 'function') {
+					fn.apply(this, _q[i].slice(1));
+			}
+		}
+		_q = [];
 	}
 
 	function _logEvent(action, eventType, eventProperties, callback) {
@@ -148,7 +152,6 @@ define(['DefaultOptions', 'Cookie', 'uuid', 'ua-parser-js', 'Request', 'Validato
 		if (typeof callback !== 'function') {
 			callback = null;
 		}
-
 		if (!action || options.optOut) {
 			if (callback) {
 				callback(0, 'No request sent');
@@ -290,7 +293,7 @@ define(['DefaultOptions', 'Cookie', 'uuid', 'ua-parser-js', 'Request', 'Validato
 	}
 
 	function identifyEmail(email) {
-		if(Validator.validateEmail(email)) {
+		if(!Validator.validateEmail(email)) {
 			_log('Email is not valid: ' + email);
 			return;
 		}
@@ -298,7 +301,7 @@ define(['DefaultOptions', 'Cookie', 'uuid', 'ua-parser-js', 'Request', 'Validato
 	}
 
 	function identifyPhone(phone) {
-		if(Validator.validatePhone(phone)) {
+		if(!Validator.validatePhone(phone)) {
 			_log('Phone is not valid: ' + phone);
 			return;
 		}
@@ -306,7 +309,7 @@ define(['DefaultOptions', 'Cookie', 'uuid', 'ua-parser-js', 'Request', 'Validato
 	}
 
 	function identifyGender(gender) {
-		if(Validator.validageGender(gender)) {
+		if(!Validator.validageGender(gender)) {
 			_log('Gender is not valid: ' + gender);
 			return;
 		}
@@ -314,7 +317,7 @@ define(['DefaultOptions', 'Cookie', 'uuid', 'ua-parser-js', 'Request', 'Validato
 	}
 
 	function identifyAge(age) {
-		if(Validator.validateAge(age)) {
+		if(!Validator.validateAge(age)) {
 			_log('Age is not valid: ' + age);
 			return;
 		}
@@ -322,7 +325,7 @@ define(['DefaultOptions', 'Cookie', 'uuid', 'ua-parser-js', 'Request', 'Validato
 	}
 
 	function identifyAvatar(url) {
-		if(Validator.validateUrl(url)) {
+		if(!Validator.validateUrl(url)) {
 			_log('Url is not valid: ' + url);
 			return;
 		}
@@ -330,7 +333,7 @@ define(['DefaultOptions', 'Cookie', 'uuid', 'ua-parser-js', 'Request', 'Validato
 	}
 
 	function identifyBirthday(date) {
-		if(Validator.validateDate(date)) {
+		if(!Validator.validateDate(date)) {
 			_log('Date is not valid: ' + date);
 			return;
 		}
@@ -338,6 +341,7 @@ define(['DefaultOptions', 'Cookie', 'uuid', 'ua-parser-js', 'Request', 'Validato
 	}
 
 	return {
+		runQueuedFunctions: runQueuedFunctions,
 		init: init,
 		track: track,
 		setUserId: setUserId,
@@ -354,5 +358,5 @@ define(['DefaultOptions', 'Cookie', 'uuid', 'ua-parser-js', 'Request', 'Validato
 		identifyPhone: identifyPhone,
 		identifyEmail: identifyEmail,
 		identifyFullName: identifyFullName
-	}
+	};
 });

@@ -1,4 +1,4 @@
-define(["utf8"],function(UTF8){
+define(["./utf8"], function(UTF8) {
 
 	var keyStr = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
 

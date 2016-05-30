@@ -4,6 +4,8 @@
   "devDependencies": {
     "gulp": "latest",
     "gulp-requirejs": "latest",
-    "webpack": "latest"
+    "webpack": "latest",
+    "gulp-clean": "latest",
+    "gulp-webserver": "latest"
   }
 }

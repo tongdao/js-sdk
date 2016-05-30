@@ -1,7 +1,6 @@
-define(["base64"], function(base64) {
+define(["./base64"], function(base64) {
 
 	var _options = {};
-
 	function options() {
 		return _options;
 	}

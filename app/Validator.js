@@ -80,4 +80,12 @@ define(function() {
 		return gender === 'male' || gender === 'female';
 	}
 
+	return {
+		validageGender: validageGender,
+		validateAge: validateAge,
+		validateEmail: validateEmail,
+		validateUrl: validateUrl,
+		validateDate: validateDate,
+		validatePhone: validatePhone
+	};
 });
