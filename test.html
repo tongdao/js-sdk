@@ -38,7 +38,7 @@
 				_q.push([t].concat(Array.prototype.slice.call(arguments, 0)));
 			}
 		}
-		var l = ["init", "track", "redirect", "logRevenue", "setUserId", "setUserProperties", "setOptOut", "setVersionName", "setDomain", "setDeviceId", "setGlobalUserProperties", "identify"];
+		var l = ["init", "track", "redirect", "logRevenue", "setUserId", "setUserProperties", "setOptOut", "setVersionName", "setDomain", "setDeviceId", "setGlobalUserProperties", "identify", "trackPlaceOrder"];
 		for (var p = 0; p < l.length; p++) {
 			c(l[p])
 		}
@@ -46,8 +46,14 @@
 })(window, document);
 
 tongdao.init("6d8425f455a62da2de84a1f072215629");
+var name = "VIP Package";
+var price = 10.0;
+var currency = "CNY";
+tongdao.trackPlaceOrder(name, price, currency);
+
 	</script>
 </head>
 <body>
+	<a href="http://google.com">Go Google</a>
 </body>
 </html>

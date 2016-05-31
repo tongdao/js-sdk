@@ -1,9 +1,10 @@
 define(function() {
 
-	var Request = function(url, data, appKey) {
+	var Request = function(url, data, appKey, async) {
 		this.url = url;
 		this.data = data || {};
 		this.appKey = appKey;
+		this.async = async;
 	};
 
 	Request.prototype.post = function(callback) {
@@ -11,7 +12,7 @@ define(function() {
 		var data = JSON.stringify(this.data);
 		if (isIE) {
 			var xdr = new window.XDomainRequest();
-			xdr.open('POST', this.url, true);
+			xdr.open('POST', this.url, this.async);
 			xdr.onload = function() {
 				callback(200, xdr.responseText);
 			};
@@ -27,7 +28,7 @@ define(function() {
 			xdr.send(data);
 		} else {
 			var xhr = new XMLHttpRequest();
-			xhr.open('POST', this.url, true);
+			xhr.open('POST', this.url, this.async);
 			xhr.onreadystatechange = function() {
 				if (xhr.readyState === 4) {
 					callback(xhr.status, xhr.responseText);

@@ -2,6 +2,7 @@ define(['./DefaultOptions', './Cookie', './uuid', './libs/ua-parser', './Request
 	var IDENTIFY_EVENT = 'identify';
 	var TRACK_EVENT = 'track';
 	var unsentEvents = [];
+	var sendingEvents = [];
 	var utmProperties = {};
 	var options = DEFAULT_OPTIONS;
 	var appKey = null;
@@ -119,8 +120,29 @@ define(['./DefaultOptions', './Cookie', './uuid', './libs/ua-parser', './Request
 			_logEvent(IDENTIFY_EVENT, null, eventProperties, callback);
 		}
 		window.onload = function() {
-			//_openPage();
+			_openPage();
 		}
+	}
+
+	function _openPage() {
+		options.startedAt = new Date().toISOString();
+		options.openedPath = window.location.href;
+		var eventProperties = {
+			"!name": options.openedPath
+		};
+		track('!open_page', eventProperties);
+		window.onbeforeunload = function () {
+			_closePage(options.openedPath, options.startedAt);
+		};
+	}
+
+	function _closePage(pathname, startedAt) {
+		options.async = false;
+		var eventProperties = {
+			"!name": pathname,
+			"!started_at": startedAt
+		};
+		track('!close_page', eventProperties);
 	}
 
 	function runQueuedFunctions(_q) {
@@ -179,10 +201,14 @@ define(['./DefaultOptions', './Cookie', './uuid', './libs/ua-parser', './Request
 		}
 		var url = options.apiEndpoint;
 		var appKey = options.appKey;
+		var async = true;
+		if(options.async !== undefined && options.async !== null) {
+			async = !!options.async;
+		}
 		var data = {
 			events: _getEventsToSend()
-		}
-		new Request(url, data, appKey).post(function(status, response) {
+		};
+		new Request(url, data, appKey, async).post(function(status, response) {
 			try {
 				if (status === 204) {
 					_removeEvents(data.events);
@@ -204,25 +230,34 @@ define(['./DefaultOptions', './Cookie', './uuid', './libs/ua-parser', './Request
 		});
 	}
 
-	function _setUnsentEvents(events) {
-		unsentEvents.push(events);
-		var exceedCount = unsentEvents.length - options.uploadBatchSize;
+	function _limitEventsQueue(events) {
+		var exceedCount = events.length - options.uploadBatchSize;
 		if(exceedCount > 0) {
-			unsentEvents.splice(0, exceedCount);
+			events.splice(0, exceedCount);
 		}
 	}
 
+	function _setUnsentEvents(events) {
+		unsentEvents.push(events);
+		_limitEventsQueue(unsentEvents);
+	}
+
 	function _getEventsToSend() {
-		var numEvents = Math.min(unsentEvents.length, options.uploadBatchSize);
-		var eventsCount = Math.min(unsentEvents.length, numEvents);
-		return unsentEvents.slice(0, eventsCount);
+		var eventsCount = Math.min(unsentEvents.length, options.uploadBatchSize);
+		var eventsToSend = unsentEvents.splice(0, eventsCount);
+		eventsToSend = eventsToSend.filter(function(event) {
+			return sendingEvents.indexOf(event) === -1;
+		});
+		sendingEvents = sendingEvents.concat(eventsToSend);
+		_limitEventsQueue(sendingEvents);
+		return eventsToSend;
 	}
 
 	function _removeEvents(events) {
 		for(var i = 0;i < events.length; i++) {
-			var ind = unsentEvents.indexOf(events[i]);
+			var ind = sendingEvents.indexOf(events[i]);
 			if(ind !== -1) {
-				unsentEvents.splice(ind, 1);
+				sendingEvents.splice(ind, 1);
 			}
 		}
 	}
@@ -343,6 +378,43 @@ define(['./DefaultOptions', './Cookie', './uuid', './libs/ua-parser', './Request
 		identify({'!birthday': date});
 	}
 
+	function trackPlaceOrder() {
+		if(arguments.length < 1) {
+			return;
+		}
+		if(arguments.length === 1) {
+			if(arguments[0] instanceof TdOrder) {
+				track('!place_order', arguments[0]);
+			} else {
+				_log('object is not TdOrder');
+			}
+			return;
+		}
+		if(arguments.length < 3) {
+			_log("arguments don't match function");
+			return;
+		}
+		var name = arguments[0];
+		var price = arguments[1];
+		var currency = arguments[2];
+		var quantity = arguments[3];
+		var order = new TdOrder();
+		order.setCurrency(currency);
+		var product = new TdProduct();
+		product.setName(name);
+		product.setPrice(price);
+		product.setCurrency(currency);
+		var orderLines = [];
+		var orderLine = new TdOrderLine();
+		if(quantity) {
+			orderLine.setQuantity(quantity);
+		}
+		orderLine.setProduct(product);
+		orderLines.push(orderLine);
+		order.setOrderLines(orderLines);
+		track('!place_order', order);
+	}
+
 	return {
 		runQueuedFunctions: runQueuedFunctions,
 		init: init,
@@ -360,6 +432,7 @@ define(['./DefaultOptions', './Cookie', './uuid', './libs/ua-parser', './Request
 		identifyGender: identifyGender,
 		identifyPhone: identifyPhone,
 		identifyEmail: identifyEmail,
-		identifyFullName: identifyFullName
+		identifyFullName: identifyFullName,
+		trackPlaceOrder: trackPlaceOrder
 	};
 });
