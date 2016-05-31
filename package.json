@@ -1,9 +1,9 @@
 {
   "name": "tongdao",
   "author": "tongdao",
+  "private": true,
   "devDependencies": {
     "gulp": "latest",
-    "gulp-requirejs": "latest",
     "webpack": "latest",
     "gulp-clean": "latest",
     "gulp-webserver": "latest"

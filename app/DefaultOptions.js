@@ -7,12 +7,10 @@ module.exports= {
 	language: require('./Language').getLanguage(),
 	optOut: false,
 	platform: 'Web',
-	savedMaxCount: 1000,
 	sessionTimeout: 30 * 60 * 1000,
 	unsentKey: 'tongdao_unsent',
 	unsentIdentifyKey: 'tongdao_unsent_identify',
 	uploadBatchSize: 100,
-	batchEvents: false,
 	eventUploadThreshold: 30,
 	eventUploadPeriodMillis: 30 * 1000
 };

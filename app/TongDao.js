@@ -11,10 +11,6 @@ define(['./DefaultOptions', './Cookie', './uuid', './libs/ua-parser', './Request
 		console.log('[TongDao] ' + m);
 	}
 
-	function _unsentCount() {
-		return unsentEvents.length;
-	}
-
 	function _loadCookieData() {
 		var cookieData = Cookie.get(options.cookieName);
 		if (cookieData) {
@@ -82,9 +78,6 @@ define(['./DefaultOptions', './Cookie', './uuid', './libs/ua-parser', './Request
 				}
 				if (opt_config.includeReferrer !== undefined) {
 					options.includeReferrer = !!opt_config.includeReferrer;
-				}
-				if (opt_config.batchEvents !== undefined) {
-					options.batchEvents = !!opt_config.batchEvents;
 				}
 				options.platform = opt_config.platform || options.platform;
 				options.language = opt_config.language || options.language;
@@ -170,7 +163,7 @@ define(['./DefaultOptions', './Cookie', './uuid', './libs/ua-parser', './Request
 			if (eventType) {
 				data.event = eventType;
 			}
-			unsentEvents.push(data);
+			_setUnsentEvents(data);
 			sendEvents(callback);
 		} catch (e) {
 			_log( '_logEvent: ' + e);
@@ -178,7 +171,7 @@ define(['./DefaultOptions', './Cookie', './uuid', './libs/ua-parser', './Request
 	}
 
 	function sendEvents(callback) {
-		if (options.optOut || _unsentCount() === 0) {
+		if (options.optOut || unsentEvents.length === 0) {
 			if(callback && typeof callback === 'function') {
 				callback(0, 'No request sent');
 			}
@@ -186,19 +179,18 @@ define(['./DefaultOptions', './Cookie', './uuid', './libs/ua-parser', './Request
 		}
 		var url = options.apiEndpoint;
 		var appKey = options.appKey;
-		var onUnloadEvent = options.onUnloadEvent || false;
 		var data = {
 			events: _getEventsToSend()
 		}
-		new Request(url, data, appKey, onUnloadEvent).post(function(status, response) {
+		new Request(url, data, appKey).post(function(status, response) {
 			try {
-				if (status === 204 || status === 200) {
-					removeEvents(data.events);
+				if (status === 204) {
+					_removeEvents(data.events);
 					sendEvents(callback);
 				} else if (status === 413) {
 					_log('Request too large');
 					if (scope.options.uploadBatchSize === 1) {
-						removeEvents(data.events);
+						_removeEvents(data.events);
 					}
 					options.uploadBatchSize = Math.ceil(numEvents / 2);
 					sendEvents(callback);
@@ -212,16 +204,27 @@ define(['./DefaultOptions', './Cookie', './uuid', './libs/ua-parser', './Request
 		});
 	}
 
+	function _setUnsentEvents(events) {
+		unsentEvents.push(events);
+		var exceedCount = unsentEvents.length - options.uploadBatchSize;
+		if(exceedCount > 0) {
+			unsentEvents.splice(0, exceedCount);
+		}
+	}
+
 	function _getEventsToSend() {
-		var numEvents = Math.min(_unsentCount(), options.uploadBatchSize);
+		var numEvents = Math.min(unsentEvents.length, options.uploadBatchSize);
 		var eventsCount = Math.min(unsentEvents.length, numEvents);
 		return unsentEvents.slice(0, eventsCount);
 	}
 
-	function removeEvents(events) {
-		unsentEvents = unsentEvents.filter(function(unsentEvent) {
-			return events.indexOf(unsentEvent) != -1;
-		});
+	function _removeEvents(events) {
+		for(var i = 0;i < events.length; i++) {
+			var ind = unsentEvents.indexOf(events[i]);
+			if(ind !== -1) {
+				unsentEvents.splice(ind, 1);
+			}
+		}
 	}
 
 	function setDomain(domain) {

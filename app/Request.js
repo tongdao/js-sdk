@@ -1,8 +1,9 @@
 define(function() {
 
-	var Request = function(url, data) {
+	var Request = function(url, data, appKey) {
 		this.url = url;
 		this.data = data || {};
+		this.appKey = appKey;
 	};
 
 	Request.prototype.post = function(callback) {
@@ -32,9 +33,7 @@ define(function() {
 					callback(xhr.status, xhr.responseText);
 				}
 			};
-			xhr.onerror = function(a,b) {
-				callback(xhr.status, xhr.responseText);
-			};
+			xhr.setRequestHeader('X-APP-KEY', this.appKey);
 			xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
 			xhr.send(data);
 		}
