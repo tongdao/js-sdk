@@ -1,4 +1,7 @@
 var tongdao = require('../app/TongDao');
+var TdOrder = require('../app/TdOrder');
+var TdOrderLine = require('../app/TdOrderLine');
+var TdProduct = require('../app/TdProduct');
 describe('TongDao tests.', function() {
 
 	var name = 'VIP Package';
@@ -62,6 +65,27 @@ describe('TongDao tests.', function() {
 		expect(product['!name']).toBe(name);
 		expect(product['!price']).toBe(price);
 		expect(product['!currency']).toBe(currency);
+	}
+
+	function assertTrackPlaceOrderByOrder(order, event) {
+		expect(event.action).toBe('track');
+		expect(event.event).toBeDefined();
+		expect(event.event).toBe('!place_order');
+		expect(event.properties['!currency']).toBeDefined();
+		expect(order['!currency']).toBe(event.properties['!currency']);
+		expect(event.properties['!order_lines']).toBeDefined();
+		expect(event.properties['!order_lines'].length).toBe(1);
+		var eventOrderLine = event.properties['!order_lines'][0];
+		var orderLine = order['!order_lines'][0];
+		if(orderLine['!quantity']) {
+			expect(orderLine['!quantity']).toBe(eventOrderLine['!quantity']);
+		}
+		expect(eventOrderLine['!product']).toBeDefined();
+		var product = orderLine['!product'];
+		var eventProduct = eventOrderLine['!product'];
+		expect(product['!name']).toBe(eventProduct['!name']);
+		expect(product['!price']).toBe(eventProduct['!price']);
+		expect(product['!currency']).toBe(eventProduct['!currency']);
 	}
 
 	//events will be saved because they can not be sent.
@@ -159,6 +183,25 @@ describe('TongDao tests.', function() {
 			expect(tongdao.__getEvents().length).toBe(0);
 			done();
 		});
+	});
+	it('[trackPlaceOrder with object]', function() {
+		var product1 = new TdProduct();
+		product1.setName("E-reader");
+		product1.setPrice((100.0).toFixed(2));
+		var orderLine1 = new TdOrderLine();
+		orderLine1.setProduct(product1);
+		orderLine1.setQuantity(2);
+		var orderLines = [];
+		orderLines.push(orderLine1);
+		var order = new TdOrder();
+		order.setCurrency("CNY");
+		order.setOrderId("abcdef");
+		order.setTotal((200.0).toFixed(2));
+		order.setOrderLines(orderLines);
+		tongdao.trackPlaceOrder(order);
+		expect(tongdao.__getEvents().length).toBe(1);
+		var event = tongdao.__getEvents()[0];
+		assertTrackPlaceOrderByOrder(order, event);
 	});
 	it('[limiting batched events queue]', function() {
 		var numEvents = parseInt(tongdao.__getOptions().uploadBatchSize + (Math.random() * tongdao.__getOptions().uploadBatchSize + 1));
