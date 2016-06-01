@@ -1,11 +1,9 @@
-define(['./DefaultOptions', './Cookie', './uuid', './libs/ua-parser', './Request', './Validator'], function(DEFAULT_OPTIONS, Cookie, UUID, UAParser, Request, Validator) {
+define(['./DefaultOptions', './Cookie', './uuid', './libs/ua-parser', './Request', './Validator', './TdOrder', './TdOrderLine', './TdProduct'],
+function(DEFAULT_OPTIONS, Cookie, UUID, UAParser, Request, Validator, TdOrder, TdOrderLine, TdProduct) {
 	var IDENTIFY_EVENT = 'identify';
 	var TRACK_EVENT = 'track';
 	var unsentEvents = [];
-	var sendingEvents = [];
-	var utmProperties = {};
 	var options = DEFAULT_OPTIONS;
-	var appKey = null;
 	var ua = new UAParser(navigator.userAgent).getResult();
 
 	function _log(m) {
@@ -37,33 +35,6 @@ define(['./DefaultOptions', './Cookie', './uuid', './libs/ua-parser', './Request
 			cookieId: options.cookieId,
 			optOut: options.optOut
 		});
-	}
-
-	function _initUtmData(queryParams, cookieParams) {
-		queryParams = queryParams || location.search;
-		cookieParams = cookieParams || Cookie.get('__utmz');
-		utmProperties = _getUtmData(cookieParams, queryParams);
-	}
-
-	function _getUtmData(rawCookie, query) {
-		var cookie = rawCookie ? '?' + rawCookie.split('.').slice(-1)[0].replace(/\|/g, '&') : '';
-		var fetchParam = function (queryName, query, cookieName, cookie) {
-			return _getUtmParam(queryName, query) || _getUtmParam(cookieName, cookie);
-		};
-		return {
-			utm_source: fetchParam('utm_source', query, 'utmcsr', cookie),
-			utm_medium: fetchParam('utm_medium', query, 'utmcmd', cookie),
-			utm_campaign: fetchParam('utm_campaign', query, 'utmccn', cookie),
-			utm_term: fetchParam('utm_term', query, 'utmctr', cookie),
-			utm_content: fetchParam('utm_content', query, 'utmcct', cookie),
-		};
-	}
-
-	function _getUtmParam(name, query) {
-		name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
-		var regex = new RegExp("[\\?&]" + name + "=([^&#]*)");
-		var results = regex.exec(query);
-		return results === null ? undefined : decodeURIComponent(results[1].replace(/\+/g, " "));
 	}
 
 	function init(appKey, opt_userId, opt_config, callback) {
@@ -99,9 +70,6 @@ define(['./DefaultOptions', './Cookie', './uuid', './libs/ua-parser', './Request
 			options.userId = opt_userId || options.userId || null;
 			options.cookieId = options.cookieId || options.deviceId;
 			_saveCookieData();
-			if (options.includeUtm) {
-				this._initUtmData();
-			}
 		} catch (e) {
 			_log('Error on init:' + e);
 		}
@@ -162,7 +130,6 @@ define(['./DefaultOptions', './Cookie', './uuid', './libs/ua-parser', './Request
 	function _logEvent(action, eventType, eventProperties, callback) {
 		if (eventProperties && typeof eventProperties !== 'object' ) {
 			throw new Error('Track Event ' + eventType + ': properties not an object');
-			return;
 		}
 		if (typeof callback !== 'function') {
 			callback = null;
@@ -206,23 +173,25 @@ define(['./DefaultOptions', './Cookie', './uuid', './libs/ua-parser', './Request
 			async = !!options.async;
 		}
 		var data = {
-			events: _getEventsToSend()
+			events: _pollEventsToSend()
 		};
 		new Request(url, data, appKey, async).post(function(status, response) {
 			try {
-				if (status === 204) {
-					_removeEvents(data.events);
+				if (status === 204 || status === 200) {
 					sendEvents(callback);
-				} else if (status === 413) {
-					_log('Request too large');
-					if (scope.options.uploadBatchSize === 1) {
-						_removeEvents(data.events);
+				} else {
+					_returnEventsToUnsent(data.events);
+					if (status === 413) {
+						_log('Request too large');
+						if (options.uploadBatchSize === 1) {
+							unsentEvents.splice(0, 1);
+						}
+						options.uploadBatchSize = Math.ceil(numEvents / 2);
+						sendEvents(callback);
+					} else if (callback) {
+						_log('Unhandled error ' + status);
+						callback(status, response);
 					}
-					options.uploadBatchSize = Math.ceil(numEvents / 2);
-					sendEvents(callback);
-				} else if (callback) {
-					_log('Unhandled error ' + status);
-					callback(status, response);
 				}
 			} catch (e) {
 				_log('Upload failed' + e);
@@ -242,24 +211,14 @@ define(['./DefaultOptions', './Cookie', './uuid', './libs/ua-parser', './Request
 		_limitEventsQueue(unsentEvents);
 	}
 
-	function _getEventsToSend() {
+	function _pollEventsToSend() {
 		var eventsCount = Math.min(unsentEvents.length, options.uploadBatchSize);
-		var eventsToSend = unsentEvents.splice(0, eventsCount);
-		eventsToSend = eventsToSend.filter(function(event) {
-			return sendingEvents.indexOf(event) === -1;
-		});
-		sendingEvents = sendingEvents.concat(eventsToSend);
-		_limitEventsQueue(sendingEvents);
-		return eventsToSend;
+		return unsentEvents.splice(0, eventsCount);
 	}
 
-	function _removeEvents(events) {
-		for(var i = 0;i < events.length; i++) {
-			var ind = sendingEvents.indexOf(events[i]);
-			if(ind !== -1) {
-				sendingEvents.splice(ind, 1);
-			}
-		}
+	function _returnEventsToUnsent(events) {
+		unsentEvents = events.concat(unsentEvents);
+		_limitEventsQueue(unsentEvents);
 	}
 
 	function setDomain(domain) {
@@ -306,8 +265,8 @@ define(['./DefaultOptions', './Cookie', './uuid', './libs/ua-parser', './Request
 		identify(userProperties);
 	}
 
-	function identify(userProperties) {
-		_logEvent(IDENTIFY_EVENT, null, userProperties);
+	function identify(userProperties, callback) {
+		_logEvent(IDENTIFY_EVENT, null, userProperties, callback);
 	}
 
 	function track(eventType, eventProperties, callback) {
@@ -433,6 +392,13 @@ define(['./DefaultOptions', './Cookie', './uuid', './libs/ua-parser', './Request
 		identifyPhone: identifyPhone,
 		identifyEmail: identifyEmail,
 		identifyFullName: identifyFullName,
-		trackPlaceOrder: trackPlaceOrder
+		trackPlaceOrder: trackPlaceOrder,
+		sendEvents: sendEvents,
+		__getOptions: function() {
+			return options;
+		},
+		__getEvents: function() {
+			return unsentEvents;
+		}
 	};
 });
