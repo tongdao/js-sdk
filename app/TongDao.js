@@ -65,7 +65,10 @@ function(DEFAULT_OPTIONS, Cookie, UUID, UAParser, Request, Validator, TdOrder, T
 			});
 			options.domain = Cookie.options().domain;
 			_loadCookieData();
-			var newUser = !!options.deviceId || true;
+			var newUser = false;
+			if(!options.deviceId) {
+				newUser = true;
+			}
 			options.deviceId = (opt_config && opt_config.deviceId) || options.deviceId || UUID();
 			options.userId = opt_userId || options.userId || null;
 			options.cookieId = options.cookieId || options.deviceId;
