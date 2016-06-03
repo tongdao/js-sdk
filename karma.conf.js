@@ -10,8 +10,11 @@ module.exports = function(config) {
 		reporters: ['progress'],
 		port: 9876,
 		colors: true,
-		logLevel: config.LOG_INFO,
+		logLevel: config.LOG_ERROR,
 		browsers: ['Chrome'],
-		singleRun: true
+		singleRun: true,
+		webpackMiddleware: {
+			noInfo: true
+		}
 	});
 };

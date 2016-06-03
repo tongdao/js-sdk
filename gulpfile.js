@@ -74,5 +74,11 @@ gulp.task('tests', function (done) {
 	new Server({
 		port: 8888,
 		configFile: __dirname + KARMA_CONFIG
-	}, done).start();
+	}, function(result) {
+		if(result === 1) {
+			done('Tests failed. Code: ' + result);
+		} else {
+			done();
+		}
+	}).start();
 });
