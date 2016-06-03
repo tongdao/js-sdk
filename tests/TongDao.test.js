@@ -33,12 +33,18 @@ describe('TongDao tests.', function() {
 		expect(event.properties['!fingerprint']).toBeDefined();
 	}
 
-	function assertOpenPage(event) {
-		expect(event.action).toBe('track');
-		expect(event.event).toBeDefined();
-		expect(event.event).toBe('!open_page');
-		expect(event.properties['!name']).toBeDefined();
-		expect(event.properties['!name']).toBe(window.location.href);
+	function assertOpenApp(openAppEvent, openPageEvent) {
+		expect(openAppEvent.action).toBe('track');
+		expect(openPageEvent.action).toBe('track');
+		expect(openAppEvent.event).toBeDefined();
+		expect(openPageEvent.event).toBeDefined();
+		expect(openAppEvent.event).toBe('!open_app');
+		expect(openPageEvent.event).toBe('!open_page');
+		expect(openAppEvent.properties['!name']).toBeDefined();
+		expect(openAppEvent.properties['!started_at']).toBeDefined();
+		expect(openPageEvent.properties['!name']).toBeDefined();
+		expect(openAppEvent.properties['!name']).toBe(window.location.href);
+		expect(openPageEvent.properties['!name']).toBe(window.location.href);
 	}
 
 	function assertIdentifyFunc(prop, value, event) {
@@ -91,25 +97,26 @@ describe('TongDao tests.', function() {
 	//events will be saved because they can not be sent.
 	it('[init, identifyage, trackplaceorder]', function(done) {
 		tongdao.init('APP_KEY');
-		//wait for window.onload to get open_page event
+		//wait for window.onload to get open_app/page event
 		setTimeout(function() {
-			expect(tongdao.__getEvents().length).toBe(2); // identify + open_page(on window load)
+			expect(tongdao.__getEvents().length).toBe(3); // identify + open_app + open_page(on window load)
 			tongdao.identifyAge(age);
-			expect(tongdao.__getEvents().length).toBe(3); // + one more identify
+			expect(tongdao.__getEvents().length).toBe(4); // + one more identify
 			tongdao.trackPlaceOrder(name, price, currency);
-			expect(tongdao.__getEvents().length).toBe(4); // + one more track
+			expect(tongdao.__getEvents().length).toBe(5); // + one more track
 			done();
 		}, 1);
 	});
 	it('[check added events]', function(done) {
 		setTimeout(function() {
-			expect(tongdao.__getEvents().length).toBe(4);
+			expect(tongdao.__getEvents().length).toBe(5);
 			var identify = tongdao.__getEvents()[0];
 			var open_app = tongdao.__getEvents()[1];
-			var identifyAge = tongdao.__getEvents()[2];
-			var trackPlaceOrder = tongdao.__getEvents()[3];
+			var open_page = tongdao.__getEvents()[2];
+			var identifyAge = tongdao.__getEvents()[3];
+			var trackPlaceOrder = tongdao.__getEvents()[4];
 			assertInit(identify);
-			assertOpenPage(open_app);
+			assertOpenApp(open_app, open_page);
 			assertIdentifyFunc('!age', age, identifyAge);
 			assertTrackPlaceOrderByParams(name, price, currency, null, trackPlaceOrder);
 			done();

@@ -12,6 +12,6 @@ module.exports = function(config) {
 		colors: true,
 		logLevel: config.LOG_INFO,
 		browsers: ['Chrome'],
-		singleRun: false
+		singleRun: true
 	});
 };

@@ -91,29 +91,80 @@ function(DEFAULT_OPTIONS, Cookie, UUID, UAParser, Request, Validator, TdOrder, T
 			_logEvent(IDENTIFY_EVENT, null, eventProperties, callback);
 		}
 		window.onload = function() {
-			_openPage();
+			_openApp();
+			_openAndClosePageDetection();
 		}
 	}
 
-	function _openPage() {
-		options.startedAt = new Date().toISOString();
-		options.openedPath = window.location.href;
-		var eventProperties = {
-			"!name": options.openedPath
+	function _openAndClosePageDetection() {
+		var oldUrl = window.location.href;
+		var detect = function() {
+			var newUrl = window.location.href
+			if(oldUrl === newUrl) {
+				return;
+			}
+			_logEvents([{
+				action: TRACK_EVENT,
+				type: '!close_page',
+				properties: {
+					"!name": options.openedPagePath,
+					"!started_at": options.startedPageAt
+				}
+			},{
+				action: TRACK_EVENT,
+				type: '!open_page',
+				properties: {
+					"!name": newUrl
+				}
+			}]);
+			oldUrl = newUrl;
+			options.startedPageAt = new Date().toISOString();
+			options.openedPagePath = newUrl;
 		};
-		track('!open_page', eventProperties);
+		setInterval(detect, options.changeUrlDetectionMillis);
+	}
+
+	function _openApp() {
+		options.startedAppAt = new Date().toISOString();
+		options.startedPageAt = options.startedAppAt;
+		options.openedAppPath = window.location.href;
+		options.openedPagePath = options.openedAppPath;
+		_logEvents([{
+			action: TRACK_EVENT,
+			type: '!open_app',
+			properties: {
+				"!name": options.openedAppPath,
+				"!started_at": options.startedAppAt
+			}
+		}, {
+			action: TRACK_EVENT,
+			type: '!open_page',
+			properties: {
+				"!name": options.openedPagePath
+			}
+		}]);
 		window.onbeforeunload = function () {
-			_closePage(options.openedPath, options.startedAt);
+			_closeApp();
 		};
 	}
 
-	function _closePage(pathname, startedAt) {
+	function _closeApp() {
 		options.async = false;
-		var eventProperties = {
-			"!name": pathname,
-			"!started_at": startedAt
-		};
-		track('!close_page', eventProperties);
+		_logEvents([{
+			action: TRACK_EVENT,
+			type: '!close_page',
+			properties: {
+				"!name": options.openedPagePath,
+				"!started_at": options.startedPageAt
+			}
+		}, {
+			action: TRACK_EVENT,
+			type: '!close_app',
+			properties: {
+				"!name": options.openedAppPath,
+				"!started_at": options.startedAppAt
+			}
+		}]);
 	}
 
 	function runQueuedFunctions(_q) {
@@ -124,42 +175,60 @@ function(DEFAULT_OPTIONS, Cookie, UUID, UAParser, Request, Validator, TdOrder, T
 		for (var i = 0; i < _q.length; i++) {
 			var fn = this[_q[i][0]];
 			if (fn && typeof fn === 'function') {
-					fn.apply(this, _q[i].slice(1));
+				fn.apply(this, _q[i].slice(1));
 			}
 		}
 		_q = [];
 	}
 
-	function _logEvent(action, eventType, eventProperties, callback) {
-		if (eventProperties && typeof eventProperties !== 'object' ) {
-			throw new Error('Track Event ' + eventType + ': properties not an object');
-		}
+	function _logEvents(events, callback) {
 		if (typeof callback !== 'function') {
 			callback = null;
 		}
-		if (!action || options.optOut) {
-			if (callback) {
+		if (options.optOut) {
+			if(callback) {
 				callback(0, 'No request sent');
 			}
 			return;
 		}
+		if(events.length === 0) {
+			return;
+		}
 		try {
-			var timestamp = new Date().toISOString();
-			eventProperties = eventProperties || {};
-			var data = {
-				action: action,
-				user_id: options.userId || options.deviceId,
-				properties: eventProperties,
-				timestamp: timestamp
+			for(var i = 0; i < events.length; i++) {
+				var event = events[i];
+				if (event.properties && typeof event.properties !== 'object' ) {
+					_log('Track Event ' + event.type + ': properties not an object');
+					continue;
+				}
+				if (!event.action) {
+					_log('Event ' + event.type + ' has no action. Skipped.');
+					continue;
+				}
+				var eventProperties = event.properties || {};
+				var data = {
+					action: event.action,
+					user_id: options.userId || options.deviceId,
+					properties: eventProperties,
+					timestamp: new Date().toISOString()
+				}
+				if (event.type) {
+					data.event = event.type;
+				}
+				_setUnsentEvents(data);
 			}
-			if (eventType) {
-				data.event = eventType;
-			}
-			_setUnsentEvents(data);
 			sendEvents(callback);
 		} catch (e) {
-			_log( '_logEvent: ' + e);
+			_log( '_logEvents: ' + e);
 		}
+	}
+
+	function _logEvent(action, eventType, eventProperties, callback) {
+		_logEvents([{
+			action: action,
+			type: eventType,
+			properties: eventProperties
+		}], callback);
 	}
 
 	function sendEvents(callback) {
@@ -273,7 +342,7 @@ function(DEFAULT_OPTIONS, Cookie, UUID, UAParser, Request, Validator, TdOrder, T
 	}
 
 	function track(eventType, eventProperties, callback) {
-		return _logEvent(TRACK_EVENT, eventType, eventProperties, callback);
+		_logEvent(TRACK_EVENT, eventType, eventProperties, callback);
 	}
 
 	function setVersionName(versionName) {

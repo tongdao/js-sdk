@@ -13,6 +13,7 @@ define(function() {
 		unsentIdentifyKey: 'tongdao_unsent_identify',
 		uploadBatchSize: 100,
 		eventUploadThreshold: 30,
-		eventUploadPeriodMillis: 30 * 1000
+		eventUploadPeriodMillis: 30 * 1000,
+		changeUrlDetectionMillis: 500
 	}
 });
