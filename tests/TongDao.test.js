@@ -1,4 +1,5 @@
 var tongdao = require('../app/TongDao');
+var cookie = require('../app/Cookie');
 var TdOrder = require('../app/TdOrder');
 var TdOrderLine = require('../app/TdOrderLine');
 var TdProduct = require('../app/TdProduct');
@@ -25,12 +26,23 @@ describe('TongDao tests.', function() {
 		tongdao.__getOptions().apiEndpoint = BAD_API_ENDPOINT;
 		tongdao.__getOptions().async = false;
 		tongdao.__getOptions().uploadBatchSize = 10;
+		cookie.remove(tongdao.__getOptions().cookieName);
 	});
 
 	function assertInit(event) {
 		expect(event.action).toBe('identify');
 		expect(event.properties['!device']).toBeDefined();
-		expect(event.properties['!fingerprint']).toBeDefined();
+	}
+
+	function asserMergeEvent(event, userProperties) {
+		expect(event.action).toBe('merge');
+		for(var prop in userProperties) {
+			if(!userProperties.hasOwnProperty(prop)) {
+				continue;
+			}
+			expect(event[prop]).toBeDefined();
+			expect(event[prop]).toBe(userProperties[prop]);
+		}
 	}
 
 	function assertOpenApp(openAppEvent, openPageEvent) {
@@ -133,16 +145,18 @@ describe('TongDao tests.', function() {
 		var userId = 'userTongDao';
 		tongdao.setUserId(userId);
 		tongdao.identify({age: age}, function() {
-			expect(tongdao.__getEvents().length).toBe(1);
-			var event = tongdao.__getEvents()[0];
-			expect(userId).toBe(event['user_id']);
+			expect(tongdao.__getEvents().length).toBe(2);
+			var setUserIdEvent = tongdao.__getEvents()[0];
+			asserMergeEvent(setUserIdEvent, {'previous_id': ''});
+			var ageEvent = tongdao.__getEvents()[1];
+			expect(userId).toBe(ageEvent['user_id']);
 			done();
 		});
 	});
 	it('[setUserId:logout]', function(done) {
 		tongdao.setUserId(null);
 		tongdao.identify({gender: 'male'}, function() {
-			expect(tongdao.__getEvents().length).toBe(2);
+			expect(tongdao.__getEvents().length).toBe(3); // identify + 2 events from login.
 			var event = tongdao.__getEvents()[1];
 			expect(event['user_id']).toBeDefined(); // deviceId used. Is it ok???
 			done();
@@ -152,8 +166,8 @@ describe('TongDao tests.', function() {
 		var deviceId = 'deviceTongDao';
 		tongdao.setDeviceId(deviceId);
 		tongdao.identify({address: 'The City'}, function() {
-			expect(tongdao.__getEvents().length).toBe(3);
-			var event = tongdao.__getEvents()[2];
+			expect(tongdao.__getEvents().length).toBe(4); // identify + 3 from previous test
+			var event = tongdao.__getEvents()[3];
 			expect(deviceId).toBe(event['user_id']); // since deviceId is used if userId is not defined
 			done();
 		});
@@ -161,8 +175,8 @@ describe('TongDao tests.', function() {
 	it('[setDeviceId:null]', function(done) {
 		tongdao.setDeviceId(null);
 		tongdao.identify({agent: 'Smith'}, function() {
-			expect(tongdao.__getEvents().length).toBe(4);
-			var event = tongdao.__getEvents()[3];
+			expect(tongdao.__getEvents().length).toBe(5); // identify + 4 from previous test
+			var event = tongdao.__getEvents()[4];
 			expect(null).toBe(event['user_id']);
 			tongdao.setDeviceId('UUID');
 			done();

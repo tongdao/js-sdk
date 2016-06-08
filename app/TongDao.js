@@ -2,6 +2,7 @@ define(['./DefaultOptions', './Cookie', './uuid', './libs/ua-parser', './Request
 function(DEFAULT_OPTIONS, Cookie, UUID, UAParser, Request, Validator, TdOrder, TdOrderLine, TdProduct) {
 	var IDENTIFY_EVENT = 'identify';
 	var TRACK_EVENT = 'track';
+	var MERGE_EVENT = 'merge';
 	var unsentEvents = [];
 	var options = DEFAULT_OPTIONS;
 	var ua = new UAParser(navigator.userAgent).getResult();
@@ -83,9 +84,6 @@ function(DEFAULT_OPTIONS, Cookie, UUID, UAParser, Request, Validator, TdOrder, T
 					'!os_version': ua.os.version || null,
 					'!language': options.language,
 					'!model': ua.device.model || null
-				},
-				'!fingerprint': {
-					'!gaid': options.cookieId
 				}
 			}
 			_logEvent(IDENTIFY_EVENT, null, eventProperties, callback);
@@ -206,11 +204,17 @@ function(DEFAULT_OPTIONS, Cookie, UUID, UAParser, Request, Validator, TdOrder, T
 					continue;
 				}
 				var eventProperties = event.properties || {};
+				var userProperties = event.userProperties || {};
 				var data = {
 					action: event.action,
 					user_id: options.userId || options.deviceId,
 					properties: eventProperties,
 					timestamp: new Date().toISOString()
+				}
+				for(var prop in userProperties) {
+					if(userProperties.hasOwnProperty(prop)) {
+						data[prop] = userProperties[prop];
+					}
 				}
 				if (event.type) {
 					data.event = event.type;
@@ -308,8 +312,18 @@ function(DEFAULT_OPTIONS, Cookie, UUID, UAParser, Request, Validator, TdOrder, T
 
 	function setUserId(userId) {
 		try {
+			var mergeAction = userId !== null && userId !== undefined;
+			var previousId = options.userId || '';
 			options.userId = userId || null;
 			_saveCookieData();
+			if(mergeAction) {
+				_logEvents([{
+					action: MERGE_EVENT,
+					userProperties: {
+						previous_id: previousId
+					}
+				}]);
+			}
 		} catch (e) {
 			_log('setUserId: ' + e );
 		}

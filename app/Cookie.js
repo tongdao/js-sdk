@@ -37,7 +37,7 @@ define(["./base64"], function(base64) {
 
 	function set(name, value) {
 		try {
-			_set(name, Base64.encode(JSON.stringify(value)));
+			_set(name, base64.encode(JSON.stringify(value)));
 		} catch (e) {
 		}
 	}
