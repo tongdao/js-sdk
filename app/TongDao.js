@@ -313,7 +313,7 @@ function(DEFAULT_OPTIONS, Cookie, UUID, UAParser, Request, Validator, TdOrder, T
 	function setUserId(userId) {
 		try {
 			var mergeAction = userId !== null && userId !== undefined;
-			var previousId = options.userId || '';
+			var previousId = options.userId || options.deviceId || '';
 			options.userId = userId || null;
 			_saveCookieData();
 			if(mergeAction) {
@@ -323,6 +323,8 @@ function(DEFAULT_OPTIONS, Cookie, UUID, UAParser, Request, Validator, TdOrder, T
 						previous_id: previousId
 					}
 				}]);
+			} else {
+				identify();
 			}
 		} catch (e) {
 			_log('setUserId: ' + e );

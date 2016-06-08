@@ -147,7 +147,7 @@ describe('TongDao tests.', function() {
 		tongdao.identify({age: age}, function() {
 			expect(tongdao.__getEvents().length).toBe(2);
 			var setUserIdEvent = tongdao.__getEvents()[0];
-			asserMergeEvent(setUserIdEvent, {'previous_id': ''});
+			asserMergeEvent(setUserIdEvent, {'previous_id': tongdao.__getOptions().deviceId});
 			var ageEvent = tongdao.__getEvents()[1];
 			expect(userId).toBe(ageEvent['user_id']);
 			done();
@@ -156,7 +156,7 @@ describe('TongDao tests.', function() {
 	it('[setUserId:logout]', function(done) {
 		tongdao.setUserId(null);
 		tongdao.identify({gender: 'male'}, function() {
-			expect(tongdao.__getEvents().length).toBe(3); // identify + 2 events from login.
+			expect(tongdao.__getEvents().length).toBe(4); // logout + identify + 2 events from login.
 			var event = tongdao.__getEvents()[1];
 			expect(event['user_id']).toBeDefined(); // deviceId used. Is it ok???
 			done();
@@ -166,8 +166,8 @@ describe('TongDao tests.', function() {
 		var deviceId = 'deviceTongDao';
 		tongdao.setDeviceId(deviceId);
 		tongdao.identify({address: 'The City'}, function() {
-			expect(tongdao.__getEvents().length).toBe(4); // identify + 3 from previous test
-			var event = tongdao.__getEvents()[3];
+			expect(tongdao.__getEvents().length).toBe(5); // identify + 4 from previous test
+			var event = tongdao.__getEvents()[4];
 			expect(deviceId).toBe(event['user_id']); // since deviceId is used if userId is not defined
 			done();
 		});
@@ -175,8 +175,8 @@ describe('TongDao tests.', function() {
 	it('[setDeviceId:null]', function(done) {
 		tongdao.setDeviceId(null);
 		tongdao.identify({agent: 'Smith'}, function() {
-			expect(tongdao.__getEvents().length).toBe(5); // identify + 4 from previous test
-			var event = tongdao.__getEvents()[4];
+			expect(tongdao.__getEvents().length).toBe(6); // identify + 4 from previous test
+			var event = tongdao.__getEvents()[5];
 			expect(null).toBe(event['user_id']);
 			tongdao.setDeviceId('UUID');
 			done();
