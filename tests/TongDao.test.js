@@ -32,6 +32,7 @@ describe('TongDao tests.', function() {
 	function assertInit(event) {
 		expect(event.action).toBe('identify');
 		expect(event.properties['!device']).toBeDefined();
+		expect(event.properties['!fingerprint']).toBeDefined();
 	}
 
 	function asserMergeEvent(event, userProperties) {

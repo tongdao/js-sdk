@@ -84,6 +84,9 @@ function(DEFAULT_OPTIONS, Cookie, UUID, UAParser, Request, Validator, TdOrder, T
 					'!os_version': ua.os.version || null,
 					'!language': options.language,
 					'!model': ua.device.model || null
+				},
+				'!fingerprint': {
+					'!uuid': options.deviceId
 				}
 			}
 			_logEvent(IDENTIFY_EVENT, null, eventProperties, callback);
