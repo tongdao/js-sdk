@@ -6,17 +6,13 @@ define(["./base64"], function(base64) {
 	}
 
 	function _topDomain(domain) {
-		var split = domain.split('.');
-		if(split.length < 2) {
-			return domain;
-		}
 		return domain.split('.').slice(-2).join('.');
 	}
 
 
 	function init(opts) {
 		_options.expirationDays = opts.expirationDays || _options.expirationDays;
-		var domain = (opts.domain !== undefined) ? opts.domain : '.' + _topDomain(window.location.href);
+		var domain = (opts.domain !== undefined) ? opts.domain : _topDomain(window.location.hostname);
 		_options.domain = domain || null;
 	}
 
@@ -44,7 +40,7 @@ define(["./base64"], function(base64) {
 
 
 	function _set(name, value) {
-		var expires = value !== null ? options.expirationDays : -1 ;
+		var expires = value !== null ? _options.expirationDays : -1 ;
 		if (expires) {
 			var date = new Date();
 			date.setTime(date.getTime() + (expires * 24 * 60 * 60 * 1000));
@@ -55,8 +51,8 @@ define(["./base64"], function(base64) {
 			cookie += '; expires=' + expires.toUTCString();
 		}
 		cookie += '; path=/';
-		if (options.domain) {
-			cookie += '; domain=' + options.domain;
+		if (_options.domain) {
+			cookie += '; domain=' + _options.domain;
 		}
 		document.cookie = cookie;
 	}
