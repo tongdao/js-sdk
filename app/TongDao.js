@@ -78,18 +78,7 @@ function(DEFAULT_OPTIONS, Cookie, UUID, UAParser, Request, Validator, TdOrder, T
 			_log('Error on init:' + e);
 		}
 		if (newUser) {
-			var eventProperties = {
-				'!device':{
-					'!os_name': ua.os.name || null,
-					'!os_version': ua.os.version || null,
-					'!language': options.language,
-					'!model': ua.device.model || null
-				},
-				'!fingerprint': {
-					'!uuid': options.deviceId
-				}
-			}
-			_logEvent(IDENTIFY_EVENT, null, eventProperties, callback);
+			identifyUserAgent(callback);
 		}
 		window.onload = function() {
 			_openApp();
@@ -327,7 +316,7 @@ function(DEFAULT_OPTIONS, Cookie, UUID, UAParser, Request, Validator, TdOrder, T
 					}
 				}]);
 			} else {
-				identify();
+				identifyUserAgent();
 			}
 		} catch (e) {
 			_log('setUserId: ' + e );
@@ -354,6 +343,21 @@ function(DEFAULT_OPTIONS, Cookie, UUID, UAParser, Request, Validator, TdOrder, T
 
 	function setUserProperties(userProperties) {
 		identify(userProperties);
+	}
+
+	function identifyUserAgent(callback) {
+		var eventProperties = {
+			'!device':{
+				'!os_name': ua.os.name || null,
+				'!os_version': ua.os.version || null,
+				'!language': options.language,
+				'!model': ua.device.model || null
+			},
+			'!fingerprint': {
+				'!uuid': options.userId || options.deviceId
+			}
+		}
+		_logEvent(IDENTIFY_EVENT, null, eventProperties, callback);
 	}
 
 	function identify(userProperties, callback) {
