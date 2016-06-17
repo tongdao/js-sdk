@@ -1,4 +1,6 @@
-index.html
+test.html
 testpage2.html
 testpage1.html
 testpages/*
+node_modules/**
+build/**
