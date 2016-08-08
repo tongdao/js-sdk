@@ -201,7 +201,7 @@ function(DEFAULT_OPTIONS, Cookie, UUID, UAParser, Request, Validator, TdOrder, T
 					action: event.action,
 					user_id: options.userId || options.deviceId,
 					properties: eventProperties,
-					timestamp: new Date().toISOString()
+					timestamp: getISOString()
 				}
 				for(var prop in userProperties) {
 					if(userProperties.hasOwnProperty(prop)) {
@@ -217,6 +217,25 @@ function(DEFAULT_OPTIONS, Cookie, UUID, UAParser, Request, Validator, TdOrder, T
 		} catch (e) {
 			_log( '_logEvents: ' + e);
 		}
+	}
+
+	function pad(number) {
+		if (number < 10) {
+			return '0' + number;
+		}
+		return number;
+	}
+
+	function getISOString() {
+		var d = new Date();
+		return d.getUTCFullYear() +
+			'-' + pad(d.getUTCMonth() + 1) +
+			'-' + pad(d.getUTCDate()) +
+			'T' + pad(d.getUTCHours()) +
+			':' + pad(d.getUTCMinutes()) +
+			':' + pad(d.getUTCSeconds()) +
+			'.' + (d.getUTCMilliseconds() / 1000).toFixed(3).slice(2, 5) +
+		'Z';
 	}
 
 	function _logEvent(action, eventType, eventProperties, callback) {
