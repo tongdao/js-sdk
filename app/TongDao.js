@@ -262,7 +262,7 @@ function(DEFAULT_OPTIONS, Cookie, UUID, UAParser, Request, Validator, TdOrder, T
 		var data = {
 			events: _pollEventsToSend()
 		};
-		new Request(url, data, appKey, async).post(function(status, response) {
+		new Request('POST', url, data, appKey, async).send(function(status, response) {
 			try {
 				if (status === 204 || status === 200) {
 					sendEvents(callback);
