@@ -1,5 +1,5 @@
-define(['./DefaultOptions', './Cookie', './uuid', './libs/ua-parser', './Request', './Validator', './TdOrder', './TdOrderLine', './TdProduct'],
-function(DEFAULT_OPTIONS, Cookie, UUID, UAParser, Request, Validator, TdOrder, TdOrderLine, TdProduct) {
+define(['./DefaultOptions', './Cookie', './uuid', './libs/ua-parser', './Request', './Validator', './TdOrder', './TdOrderLine', './TdProduct', './TdInAppMessage'],
+function(DEFAULT_OPTIONS, Cookie, UUID, UAParser, Request, Validator, TdOrder, TdOrderLine, TdProduct, TdInAppMessage) {
 	var IDENTIFY_EVENT = 'identify';
 	var TRACK_EVENT = 'track';
 	var MERGE_EVENT = 'merge';
@@ -488,6 +488,91 @@ function(DEFAULT_OPTIONS, Cookie, UUID, UAParser, Request, Validator, TdOrder, T
 		track('!place_order', order);
 	}
 
+	function displayInAppMessage() {
+
+		// FETCH MESSAGES DATA AND THEN CREATE AND ATTACH RETURNED MESSAGES
+		checkForInAppMessage( function( msgData ) {
+			// RETURN IF NO MESSAGES
+			if (!msgData.length) {
+				console.log('No Messages Found');
+				return;
+			}
+
+			// LOOPS THROUGH MESSAGES WITH SLIGHT DELAY
+			var messageLength = msgData.length;
+			var counter = 0;
+			(function displayMsg (i) {            
+				// CREATE NEW tdMessage WITH CORRESPONDING DATA
+				var tdMessage = new TdInAppMessage(msgData[i]);
+
+				// CHECK FOR CORRESPONDING POSITION'S MESSAGES WRAPPER AND CREATE IF NONE
+				var tdWrapper = document.getElementById('td-popup-wrapper-' + tdMessage.layout)	
+				if (!tdWrapper) {
+					tdWrapper = document.createElement('div');
+					tdWrapper.id = 'td-popup-wrapper-' + tdMessage.layout;
+					document.body.appendChild(tdWrapper);
+				}
+
+				// CREATE MESSAGE AND CSS STYLE DOM ELEMENTS
+				var messageEl = tdMessage.createMessageEl();
+				var messageStyles = tdMessage.createMessageStyles();
+				// ADD CSS ELEMENT
+				tdMessage.injectStyles(messageStyles);
+				// PRELOAD IMAGES AND ATTACH MESSAGE TO DOM
+				tdMessage.attachMessageEl(messageEl, tdWrapper);
+				// DELAY NEXT MESSAGE ATTACHMENT FOR BETTER UI
+				counter++;
+				if (counter<messageLength) {
+					setTimeout(function () { 
+						displayMsg(counter);
+					}, 800);
+				}
+			})(counter); 
+
+		});
+
+	}
+
+	function checkForInAppMessage(callback) {
+
+		// FUNCTION SHOULD CALL API WITH CURRENT USER ID AND RETURN ANY INBOX MESSAGES
+		var userId = options.userId || options.deviceId;
+		var url = 'https://api.tongrd.com/v2/messages?user_id=' + userId;
+		var appKey = options.appKey;
+		var async = true;
+		if(options.async !== undefined && options.async !== null) {
+			async = !!options.async;
+		}
+		var data = {};
+		new Request('GET', url, data, appKey, async).send(function(status, response) {
+			try {
+				if (status === 204 || status === 200) {
+					if (callback) {
+						// MAKE SURE RETURNING OBJECT NOT STRING
+						callback( JSON.parse(response) );
+					} else {
+						return JSON.parse(response);
+					};
+				} else {
+					// _returnEventsToUnsent(data.events);
+					// if (status === 413) {
+					// 	_log('Request too large');
+					// 	if (options.uploadBatchSize === 1) {
+					// 		unsentEvents.splice(0, 1);
+					// 	}
+					// 	options.uploadBatchSize = Math.ceil(numEvents / 2);
+					// 	sendEvents(callback);
+					// } else if (callback) {
+					// 	_log('Unhandled error ' + status);
+					// 	callback(status, response);
+					// }
+				}
+			} catch (e) {
+				_log('Unable to Get Messages' + e);
+			}
+		});
+	}
+
 	return {
 		runQueuedFunctions: runQueuedFunctions,
 		init: init,
@@ -507,6 +592,8 @@ function(DEFAULT_OPTIONS, Cookie, UUID, UAParser, Request, Validator, TdOrder, T
 		identifyEmail: identifyEmail,
 		identifyFullName: identifyFullName,
 		trackPlaceOrder: trackPlaceOrder,
+		displayInAppMessage: displayInAppMessage,
+		checkForInAppMessage: checkForInAppMessage,
 		sendEvents: sendEvents,
 		__getOptions: function() {
 			return options;
