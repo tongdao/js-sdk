@@ -218,9 +218,9 @@ define(function() {
 					bodyEl = '<div id="td-message-body" class="td-message-body">'+ titleEl + textEl + '</div>',
 					closeEl = '<div id="td-close-icon"><div class="close-x"></div></div>',
 					
-					// IF MESSAGE HAS ACTION > WRAP ALL BUT CLOSE IN <a>
+					// IF MESSAGE HAS ACTION > WRAP ALL BUT closeEl IN <a>
 					innerMessage = ( this.action&&this.action.type=='url' ) ?
-					'<a href="' + this.action.value +'" class="td-message-link">' + imgEl + bodyEl + '</a>' + closeEl: imgEl + bodyEl + closeEl ;
+					'<a href="' + this.action.value +'" id="td-message-link" class="td-message-link">' + imgEl + bodyEl + '</a>' + closeEl : imgEl + bodyEl + closeEl ;
 
 				// WRAP IN MSG CONTAINER AND SET AS innerHTML
 				messageEl.innerHTML = '<div id="td-message-container" class="td-message-container">' + innerMessage + '</div>';
@@ -281,11 +281,8 @@ define(function() {
 	        };
 
 	        var imgObj = new Image();
-	        imgObj.onload = _onload;
 	        imgObj.src = self.image_url;
-	        if (imgObj.complete) {
-	            _onload();
-	        }
+	        imgObj.onload = _onload;
 
 	    };
 
@@ -334,14 +331,9 @@ define(function() {
 				element.setAttribute('class', currentClass+' '+className);
 			};
 
-			var _setButtonPositions = function() {
-
-		    };
-
 		    // IF LAYOUT FULL SET VERTICAL HEIGHT AND BUTTONS BEFORESHOWING
 		    if ( self.layout == 'full' ) {
 		    	messageWrapper.setAttribute('style', 'height: '+ self.image_h +'px; width: '+ self.image_w +'px;' );
-		    	_setButtonPositions();
 		    }
 
 			setTimeout( function(){ 
@@ -359,12 +351,22 @@ define(function() {
 					_startDelayClose(); 
 				});
 
-				// ADD HIDE FUNCTION FOR CLOSE BUTTON
+				// ADD CLOSE FUNCTION FOR CLOSE BUTTON
 				var closeButton = messageEl.querySelector('#td-close-icon');
 				closeButton.addEventListener('click', function(e){
 					clearTimeout(delayClose);
 					_closeMessage();
 				});
+
+				//EVENT LISTENER FOR MESSAGE CLICK ( GO TO ACTION URL );
+				if ( self.layout!='full' && self.action && self.action.type=='url' ) {
+					var messageLink = messageEl.querySelector('#td-message-link');
+					messageLink.addEventListener('click', function(e) {
+						tongdao.track('!open_message', { '!message_id': self.mid, '!campaign_id': self.cid });
+					});
+				}
+
+				tongdao.track('!receive_message', { '!message_id': self.mid, '!campaign_id': self.cid });
 
 			}, 100);
 

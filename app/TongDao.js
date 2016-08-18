@@ -488,13 +488,13 @@ function(DEFAULT_OPTIONS, Cookie, UUID, UAParser, Request, Validator, TdOrder, T
 		track('!place_order', order);
 	}
 
-	function displayInAppMessage() {
+	function displayInAppMessage(callback) {
 
 		// FETCH MESSAGES DATA AND THEN CREATE AND ATTACH RETURNED MESSAGES
 		checkForInAppMessage( function( msgData ) {
 			// RETURN IF NO MESSAGES
 			if (!msgData.length) {
-				console.log('No Messages Found');
+				if (callback) callback();
 				return;
 			}
 
@@ -535,6 +535,8 @@ function(DEFAULT_OPTIONS, Cookie, UUID, UAParser, Request, Validator, TdOrder, T
 					setTimeout(function () { 
 						displayMsg(counter);
 					}, 800);
+				} else {
+					if (callback) callback();
 				}
 			})(counter); 
 
@@ -548,6 +550,10 @@ function(DEFAULT_OPTIONS, Cookie, UUID, UAParser, Request, Validator, TdOrder, T
 		var userId = options.userId || options.deviceId;
 		var url = 'https://api.tongrd.com/v2/messages?user_id=' + userId;
 		var appKey = options.appKey;
+		
+		// CHECK FOR REQUIRED userId
+		if ( !userId ) { throw( 'Error: Missing User Id' ); return; }
+
 		var async = true;
 		if(options.async !== undefined && options.async !== null) {
 			async = !!options.async;
@@ -563,21 +569,10 @@ function(DEFAULT_OPTIONS, Cookie, UUID, UAParser, Request, Validator, TdOrder, T
 						return JSON.parse(response);
 					};
 				} else {
-					// _returnEventsToUnsent(data.events);
-					// if (status === 413) {
-					// 	_log('Request too large');
-					// 	if (options.uploadBatchSize === 1) {
-					// 		unsentEvents.splice(0, 1);
-					// 	}
-					// 	options.uploadBatchSize = Math.ceil(numEvents / 2);
-					// 	sendEvents(callback);
-					// } else if (callback) {
-					// 	_log('Unhandled error ' + status);
-					// 	callback(status, response);
-					// }
+					_log(' Unable to Return messages');
 				}
 			} catch (e) {
-				_log('Unable to Get Messages' + e);
+				_log(' Unable to Get Messages: ' + e);
 			}
 		});
 	}
