@@ -501,25 +501,34 @@ function(DEFAULT_OPTIONS, Cookie, UUID, UAParser, Request, Validator, TdOrder, T
 			// LOOPS THROUGH MESSAGES WITH SLIGHT DELAY
 			var messageLength = msgData.length;
 			var counter = 0;
+			var firstFull = true;
 			(function displayMsg (i) {            
 				// CREATE NEW tdMessage WITH CORRESPONDING DATA
 				var tdMessage = new TdInAppMessage(msgData[i]);
 
 				// CHECK FOR CORRESPONDING POSITION'S MESSAGES WRAPPER AND CREATE IF NONE
-				var tdWrapper = document.getElementById('td-popup-wrapper-' + tdMessage.layout)	
+				var tdWrapper = document.getElementById('td-popup-wrapper-' + tdMessage.layout);
 				if (!tdWrapper) {
 					tdWrapper = document.createElement('div');
 					tdWrapper.id = 'td-popup-wrapper-' + tdMessage.layout;
 					document.body.appendChild(tdWrapper);
 				}
 
-				// CREATE MESSAGE AND CSS STYLE DOM ELEMENTS
+				// CREATE MESSAGE ELEMENTS
 				var messageEl = tdMessage.createMessageEl();
-				var messageStyles = tdMessage.createMessageStyles();
-				// ADD CSS ELEMENT
-				tdMessage.injectStyles(messageStyles);
-				// PRELOAD IMAGES AND ATTACH MESSAGE TO DOM
-				tdMessage.attachMessageEl(messageEl, tdWrapper);
+
+				// CHECK FOR MESSAGES CSS, IF NONE INJECT CSS STYLE NODE
+				if ( !document.getElementById('td-message-styles') ) {
+					tdMessage.injectStyles();
+				}
+
+				// CHECK IF FIRST "full" LAYOUR MESSAGE > PREVENT MORE THAN ONE FROM ATTACHING
+				if( tdMessage.layout!='full' || firstFull ) {
+					if(tdMessage.layout=='full') firstFull = false;
+					// PRELOAD IMAGES AND ATTACH MESSAGE TO DOM
+					tdMessage.attachMessageEl(messageEl, tdWrapper);
+				};
+				
 				// DELAY NEXT MESSAGE ATTACHMENT FOR BETTER UI
 				counter++;
 				if (counter<messageLength) {
@@ -529,7 +538,7 @@ function(DEFAULT_OPTIONS, Cookie, UUID, UAParser, Request, Validator, TdOrder, T
 				}
 			})(counter); 
 
-		});
+		} );
 
 	}
 
