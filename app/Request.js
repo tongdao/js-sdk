@@ -1,18 +1,19 @@
 define(function() {
 
-	var Request = function(url, data, appKey, async) {
+	var Request = function(method, url, data, appKey, async) {
+		this.method = method;
 		this.url = url;
 		this.data = data || {};
 		this.appKey = appKey;
 		this.async = async;
 	};
 
-	Request.prototype.post = function(callback) {
+	Request.prototype.send = function(callback) {
 		var isIE = window.XDomainRequest ? true : false;
 		var data = JSON.stringify(this.data);
 		if (isIE) {
 			var xdr = new window.XDomainRequest();
-			xdr.open('POST', this.url, this.async);
+			xdr.open(this.method, this.url, this.async);
 			xdr.onload = function() {
 				callback(200, xdr.responseText);
 			};
@@ -28,7 +29,7 @@ define(function() {
 			xdr.send(data);
 		} else {
 			var xhr = new XMLHttpRequest();
-			xhr.open('POST', this.url, this.async);
+			xhr.open(this.method, this.url, this.async);
 			xhr.onreadystatechange = function() {
 				if (xhr.readyState === 4) {
 					callback(xhr.status, xhr.responseText);
@@ -38,6 +39,7 @@ define(function() {
 			xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
 			xhr.send(data);
 		}
-	}
+	};
+
 	return Request;
 });

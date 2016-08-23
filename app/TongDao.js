@@ -1,5 +1,5 @@
-define(['./DefaultOptions', './Cookie', './uuid', './libs/ua-parser', './Request', './Validator', './TdOrder', './TdOrderLine', './TdProduct'],
-function(DEFAULT_OPTIONS, Cookie, UUID, UAParser, Request, Validator, TdOrder, TdOrderLine, TdProduct) {
+define(['./DefaultOptions', './Cookie', './uuid', './libs/ua-parser', './Request', './Validator', './TdOrder', './TdOrderLine', './TdProduct', './TdInAppMessage'],
+function(DEFAULT_OPTIONS, Cookie, UUID, UAParser, Request, Validator, TdOrder, TdOrderLine, TdProduct, TdInAppMessage) {
 	var IDENTIFY_EVENT = 'identify';
 	var TRACK_EVENT = 'track';
 	var MERGE_EVENT = 'merge';
@@ -201,7 +201,7 @@ function(DEFAULT_OPTIONS, Cookie, UUID, UAParser, Request, Validator, TdOrder, T
 					action: event.action,
 					user_id: options.userId || options.deviceId,
 					properties: eventProperties,
-					timestamp: new Date().toISOString()
+					timestamp: getISOString()
 				}
 				for(var prop in userProperties) {
 					if(userProperties.hasOwnProperty(prop)) {
@@ -217,6 +217,25 @@ function(DEFAULT_OPTIONS, Cookie, UUID, UAParser, Request, Validator, TdOrder, T
 		} catch (e) {
 			_log( '_logEvents: ' + e);
 		}
+	}
+
+	function pad(number) {
+		if (number < 10) {
+			return '0' + number;
+		}
+		return number;
+	}
+
+	function getISOString() {
+		var d = new Date();
+		return d.getUTCFullYear() +
+			'-' + pad(d.getUTCMonth() + 1) +
+			'-' + pad(d.getUTCDate()) +
+			'T' + pad(d.getUTCHours()) +
+			':' + pad(d.getUTCMinutes()) +
+			':' + pad(d.getUTCSeconds()) +
+			'.' + (d.getUTCMilliseconds() / 1000).toFixed(3).slice(2, 5) +
+		'Z';
 	}
 
 	function _logEvent(action, eventType, eventProperties, callback) {
@@ -243,7 +262,7 @@ function(DEFAULT_OPTIONS, Cookie, UUID, UAParser, Request, Validator, TdOrder, T
 		var data = {
 			events: _pollEventsToSend()
 		};
-		new Request(url, data, appKey, async).post(function(status, response) {
+		new Request('POST', url, data, appKey, async).send(function(status, response) {
 			try {
 				if (status === 204 || status === 200) {
 					sendEvents(callback);
@@ -469,6 +488,95 @@ function(DEFAULT_OPTIONS, Cookie, UUID, UAParser, Request, Validator, TdOrder, T
 		track('!place_order', order);
 	}
 
+	function displayInAppMessage(callback) {
+
+		// FETCH MESSAGES DATA AND THEN CREATE AND ATTACH RETURNED MESSAGES
+		checkForInAppMessage( function( msgData ) {
+			// RETURN IF NO MESSAGES
+			if (!msgData.length) {
+				if (callback) callback();
+				return;
+			}
+
+			// LOOPS THROUGH MESSAGES WITH SLIGHT DELAY
+			var messageLength = msgData.length;
+			var counter = 0;
+			var firstFull = true;
+			(function displayMsg (i) {            
+				// CREATE NEW tdMessage WITH CORRESPONDING DATA
+				var tdMessage = new TdInAppMessage(msgData[i]);
+
+				// CHECK FOR CORRESPONDING POSITION'S MESSAGES WRAPPER AND CREATE IF NONE
+				var tdWrapper = document.getElementById('td-popup-wrapper-' + tdMessage.layout);
+				if (!tdWrapper) {
+					tdWrapper = document.createElement('div');
+					tdWrapper.id = 'td-popup-wrapper-' + tdMessage.layout;
+					document.body.appendChild(tdWrapper);
+				}
+
+				// CREATE MESSAGE ELEMENTS
+				var messageEl = tdMessage.createMessageEl();
+
+				// CHECK FOR MESSAGES CSS, IF NONE INJECT CSS STYLE NODE
+				if ( !document.getElementById('td-message-styles') ) {
+					tdMessage.injectStyles();
+				}
+
+				// CHECK IF FIRST "full" LAYOUR MESSAGE > PREVENT MORE THAN ONE FROM ATTACHING
+				if( tdMessage.layout!='full' || firstFull ) {
+					if(tdMessage.layout=='full') firstFull = false;
+					// PRELOAD IMAGES AND ATTACH MESSAGE TO DOM
+					tdMessage.attachMessageEl(messageEl, tdWrapper);
+				};
+				
+				// DELAY NEXT MESSAGE ATTACHMENT FOR BETTER UI
+				counter++;
+				if (counter<messageLength) {
+					setTimeout(function () { 
+						displayMsg(counter);
+					}, 800);
+				} else {
+					if (callback) callback();
+				}
+			})(counter); 
+
+		} );
+
+	}
+
+	function checkForInAppMessage(callback) {
+
+		// FUNCTION SHOULD CALL API WITH CURRENT USER ID AND RETURN ANY INBOX MESSAGES
+		var userId = options.userId || options.deviceId;
+		var url = 'https://api.tongrd.com/v2/messages?user_id=' + userId;
+		var appKey = options.appKey;
+		
+		// CHECK FOR REQUIRED userId
+		if ( !userId ) { throw( 'Error: Missing User Id' ); return; }
+
+		var async = true;
+		if(options.async !== undefined && options.async !== null) {
+			async = !!options.async;
+		}
+		var data = {};
+		new Request('GET', url, data, appKey, async).send(function(status, response) {
+			try {
+				if (status === 204 || status === 200) {
+					if (callback) {
+						// MAKE SURE RETURNING OBJECT NOT STRING
+						callback( JSON.parse(response) );
+					} else {
+						return JSON.parse(response);
+					};
+				} else {
+					_log(' Unable to Return messages');
+				}
+			} catch (e) {
+				_log(' Unable to Get Messages: ' + e);
+			}
+		});
+	}
+
 	return {
 		runQueuedFunctions: runQueuedFunctions,
 		init: init,
@@ -488,6 +596,8 @@ function(DEFAULT_OPTIONS, Cookie, UUID, UAParser, Request, Validator, TdOrder, T
 		identifyEmail: identifyEmail,
 		identifyFullName: identifyFullName,
 		trackPlaceOrder: trackPlaceOrder,
+		displayInAppMessage: displayInAppMessage,
+		checkForInAppMessage: checkForInAppMessage,
 		sendEvents: sendEvents,
 		__getOptions: function() {
 			return options;
