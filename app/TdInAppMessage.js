@@ -39,7 +39,6 @@ define(function() {
 				'z-index': '999'
 			},
 			'#td-popup-wrapper-top, #td-popup-wrapper-bottom': { 
-				'width': '400px',
 				'margin-left': '-200px', 
 				'position': 'fixed',
 				'left': '50vw',
@@ -60,11 +59,14 @@ define(function() {
 				'display': 'inline-block',
 				'margin': '5px auto',
 				'text-align': 'left',
-				'border-radius': '5px',
+				'border-radius': '15px',
+				'padding': '10px',
 				'box-sizing': 'border-box',
 				'box-shadow': '0px 0px 40px 0px rgba(0,0,0,0.4)',
 				'transition': 'all ease 0.2s',
-				'vertical-align': 'middle',
+			},
+			'.td-message-container *': {
+				'box-sizing': 'border-box'
 			},
 			'div.td-message-container': {
 				'cursor': 'default'
@@ -83,31 +85,30 @@ define(function() {
 			'.td-message-container.fade': {
 				'opacity': '0'
 			},
-			'.td-message-link': {
-				'display': 'inline-block',
-				'vertical-align': 'middle'
-			},
 			'.td-message-image': {
-				'float': 'left',
 				'overflow': 'hidden',
+				'display': 'inline-block',
+				'vertical-align': 'bottom',
 				'height': '75px',
 				'width': '75px'
 			},
 			'.td-message-image img': {
 				'width': '75px',
 				'height': '75px',
-				'border-radius': '5px 0 0 5px'
+				'border-radius': '10px'
 			},
 			'.td-message-body': {
-				'float': 'left',
 				'width': '295px',
-				'padding': '10px',
-				'font-family': 'Trebuchet MS1, Helvetica, sans-serif',
+				'height': '75px',
+				'display': 'inline-block',
+				'padding': '0 10px',
+				'vertical-align': 'top',
+				'font-family': 'Helvetica, Arial, "Microsoft YaHei", 微软雅黑, "SimHei", "中易黑体",sans-serif',
 				'letter-spacing': '0.5px',
 				'color': '#333'
 			},
 			'.td-message-title': {
-				'font-size': '24px',
+				'font-size': '22px',
 				'margin-bottom': '2px'
 			},
 			'.td-message-text': {
@@ -116,8 +117,27 @@ define(function() {
 			},
 			'.td-message-title+.td-message-text': {
 				'font-size': '14px',
-				'line-height': '15px',
+				'line-height': '16px',
 				'color': '#666',
+			},
+			// CALL TO ACTIONS
+			'.td-message-action': {
+				'display': 'inline-block',
+				'margin-left': '10px'
+			},
+			'.td-message-btn': {
+				'display': 'inline-block',
+				'padding': '10px 20px',
+				'border-radius': '5px',
+				'font-size': '16px',
+				'font-weight': 'lighter',
+				'font-family': 'Helvetica, Arial, "Microsoft YaHei", 微软雅黑, "SimHei", "中易黑体",sans-serif',
+				'text-decoration': 'none'
+			},
+			'.td-btn-primary': {
+				'background-color': '#007FDA',
+				'border-color': '#007FDA',
+				'color': '#fff'
 			},
 			// FULL LAYOUT MESSAGE
 			'.td-message-cover': {
@@ -146,30 +166,37 @@ define(function() {
 				'position': 'absolute',
 			},
 			// CLOSE BUTTON
-			'#td-close-icon': {
+			'.td-close-icon': {
 				'position': 'absolute',
-				'top': '-7px',
-				'right': '-7px',
-				'height': '20px',
-				'width': '20px'
-			},
-			'.close-x': {
+				'top': '5px',
+				'right': '5px',
 				'cursor': 'pointer',
-				'font-size': '18px',
 				'border-radius': '50%',
-				'width': '21px',
+				'width': '30px',
 				'display': 'inline-block',
-				'height': '21px',
-				'line-height': '18px',
-				'text-align': 'center',
-				'color': '#fff',
-				'background-color': '#666'
+				'height': '30px',
+				'background-color': '#333',
+				'opacity': '0.4',
+				'-webkit-backface-visibility': 'hidden'
 			},
-			'.close-x:hover': {
-				'background-color': '#333'
+			'.td-close-icon:hover': {
+				'opacity': '1'
 			},
-			'.close-x:after': {
-				'content': '"×"'
+			'.td-close-icon:after, .td-close-icon:before': {
+				'position': 'absolute',
+				'left': '13px',
+				'content': '""',
+				'background-color': '#fff',
+				'height': '18px',
+				'width': '4px',
+				'border-radius': '2px',
+				'top': '6px'
+			},
+			'.td-close-icon:before': {
+			 	'transform': 'rotate(45deg)'
+			},
+			'.td-close-icon:after': {
+			 	'transform': 'rotate(-45deg)'
 			}
 		};
 	}
@@ -201,7 +228,7 @@ define(function() {
 				var button1 = buttonEls[0] ? buttonEls[0] : '',
 					button2 = buttonEls[1] ? buttonEls[1] : '', 
 					imgEl = '<img src="' + this.image_url + '" />',
-					closeEl = '<div id="td-close-icon"><a class="close-x"></a></div>';
+					closeEl = '<div id="td-close-icon" class="td-close-icon"></div>';
 
 				messageEl.innerHTML = 
 					'<div id="td-message-cover" class="td-message-cover">' + 
@@ -216,14 +243,12 @@ define(function() {
 					titleEl = this.title ?  '<div id="td-message-title" class="td-message-title">' + this.title + '</div>' : '',
 					textEl = '<div id="td-message-text" class="td-message-text">' + this.message + '</div>',
 					bodyEl = '<div id="td-message-body" class="td-message-body">'+ titleEl + textEl + '</div>',
-					closeEl = '<div id="td-close-icon"><div class="close-x"></div></div>',
-					
-					// IF MESSAGE HAS ACTION > WRAP ALL BUT closeEl IN <a>
-					innerMessage = ( this.action&&this.action.type=='url' ) ?
-					'<a href="' + this.action.value +'" id="td-message-link" class="td-message-link">' + imgEl + bodyEl + '</a>' + closeEl : imgEl + bodyEl + closeEl ;
+					// IF MESSAGE HAS ACTION > ADD CALL TO ACTION BTN
+					actionEl = this.action.value ? '<a href="' + this.action.value +'" id="td-message-btn" class="td-message-btn td-btn-primary">' + this.action.title + '</a>' : '',
+					closeEl = '<div id="td-close-icon" class="td-close-icon"></div>';
 
 				// WRAP IN MSG CONTAINER AND SET AS innerHTML
-				messageEl.innerHTML = '<div id="td-message-container" class="td-message-container">' + innerMessage + '</div>';
+				messageEl.innerHTML = '<div id="td-message-container" class="td-message-container">' + imgEl + bodyEl + actionEl + closeEl + '</div>';
 			}
 
 		}
@@ -360,7 +385,7 @@ define(function() {
 
 				//EVENT LISTENER FOR MESSAGE CLICK ( GO TO ACTION URL );
 				if ( self.layout!='full' && self.action && self.action.type=='url' ) {
-					var messageLink = messageEl.querySelector('#td-message-link');
+					var messageLink = messageEl.querySelector('#td-message-btn');
 					messageLink.addEventListener('click', function(e) {
 						tongdao.track('!open_message', { '!message_id': self.mid, '!campaign_id': self.cid });
 					});
