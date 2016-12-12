@@ -504,31 +504,6 @@ function(DEFAULT_OPTIONS, Cookie, UUID, UAParser, Request, Validator, TdOrder, T
 		}
 		var data = {};
 
-		// TODO: DELETE, JUST FOR DEMO
-		callback({
-			"messages": [
-			    {
-				    "min_sdk": 30000,
-				    "cid": 1,
-				    "mid": 1,
-				    "title": "MMMessage TTitle",
-				    "message": "Message to appear in the body of the message. Get it Here!",
-				    "image_url": "test-cover.jpg",
-				    "display_time": 0,
-				    "layout": "full",
-				    "action": {
-				      "text": "Click Here",
-				      "type": "url",
-				      "value": "http://www.tongdao.io"
-				    },
-				    // is only for full
-				    "buttons": [],
-				    "template": "<div id='td-message-11' class='td-message'><div id='td-message-cover' class='td-message-cover hidden' data-layout='full' data-display-time='0'><img src='test-cover.jpg' /><a id='td-message-button-0' class='td-message-button' href='http://tongdao.io' style='left: 40px; top: 100px; height: 50px; width: 50px;'></a><div id='td-close-icon' class='td-close-icon'></div></div></div>",
-				    "style": "styles.css",
-				    "script": "script.js"
-				}
-			]
-		});
 		return;
 		// END DELETE
 
