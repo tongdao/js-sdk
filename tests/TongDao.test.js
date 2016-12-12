@@ -234,4 +234,5 @@ describe('TongDao tests.', function() {
 		tongdao.identify({checking: 'limit'});
 		expect(tongdao.__getEvents().length).toBe(tongdao.__getOptions().uploadBatchSize);
 	});
+	// TODO: ADD UNIT TESTING FOR INAPP MESSAGES
 });

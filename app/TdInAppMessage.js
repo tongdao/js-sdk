@@ -11,16 +11,19 @@ define(function() {
 			console.log('%cERROR: Full layout message missing image', 'color: #ff0000');
 			return;
 		}
-
-		this.mid = options.mid,
-		this.cid = options.cid,
-		this.html = options.html || '',
-		this.message = options.message || '',
-		this.image_url = options.image_url || '',
-		this.title = options.title || '',
-		this.layout = options.layout || 'top',
-		this.action = options.action || null,
+		
+		this.mid = options.mid;
+		this.cid = options.cid;
+		this.template = options.template || '';
+		this.style = options.style || '';
+		this.script = options.script || '';
+		this.message = options.message || '';
+		this.image_url = options.image_url || '';
+		this.title = options.title || '';
+		this.layout = options.layout || 'top';
+		this.action = options.action || null;
 		this.buttons = options.buttons || [];
+
 		// MAKE SURE VALUE OF 0 IS NOT SET AS NULL
 		if ( options.display_time === undefined ) {
 			// DEFAULT TO 5 IF LEFT NULL
@@ -30,188 +33,69 @@ define(function() {
 		}
 
 		// CSS ELEMENT FOR ALL MESSAGES
-		this.messageStyles = {
-			'#td-popup-wrapper-full': {
+		this.wrapperStyles = {
+			'#td-wrapper-full': {
 				'position': 'fixed',
 				'top': '50%',
 				'left': '50%',
 				'transform': 'translate(-50%, -50%)',
 				'z-index': '999'
 			},
-			'#td-popup-wrapper-top, #td-popup-wrapper-bottom': { 
-				'margin-left': '-200px', 
+			'#td-wrapper-top, #td-wrapper-bottom': { 
+				'width': '100%',
+				'max-width': '400px',
 				'position': 'fixed',
-				'left': '50vw',
+				'left': '50%',
+				'transform': 'translateX(-50%)',
 			},
-			'#td-popup-wrapper-top': {
+			'#td-wrapper-top': {
 				'top': '10px'
 			},
-			'#td-popup-wrapper-bottom': {
+			'#td-wrapper-bottom': {
 				'bottom': '10px'
 			},
-			'.td-popup-message': {
+			'.td-message': {
 				'text-align': 'center'
 			},
-			// TOP AND BOTTOM LAYOUT
-			'.td-message-container': { 
-				'opacity': '0',
-				'position': 'relative',
-				'display': 'inline-block',
-				'margin': '5px auto',
-				'text-align': 'left',
-				'border-radius': '15px',
-				'padding': '10px',
-				'box-sizing': 'border-box',
-				'box-shadow': '0px 0px 40px 0px rgba(0,0,0,0.4)',
-				'transition': 'all ease 0.2s',
+			'.td-message-container.hidden, .td-message-cover.hidden': {
+				'display': 'none'
 			},
-			'.td-message-container *': {
-				'box-sizing': 'border-box'
-			},
-			'div.td-message-container': {
-				'cursor': 'default'
-			},
-			// ADDS CLEARFIX FOR FLOAT ELEMENTS
-			'#td-message-container:before, #td-message-container:after': {
-				'display': 'table',
-				'content': '" "'
-			},
-			'#td-message-container:after': {
-				'clear': 'both' 
-			},
-			'.td-message-container.active': {
-				'opacity': '1',
-			},
-			'.td-message-container.fade': {
-				'opacity': '0'
-			},
-			'.td-message-image': {
-				'overflow': 'hidden',
-				'display': 'inline-block',
-				'vertical-align': 'bottom',
-				'height': '75px',
-				'width': '75px'
-			},
-			'.td-message-image img': {
-				'width': '75px',
-				'height': '75px',
-				'border-radius': '10px'
-			},
-			'.td-message-body': {
-				'width': '295px',
-				'height': '75px',
-				'display': 'inline-block',
-				'padding': '0 10px',
-				'vertical-align': 'top',
-				'font-family': 'Helvetica, Arial, "Microsoft YaHei", 微软雅黑, "SimHei", "中易黑体",sans-serif',
-				'letter-spacing': '0.5px',
-				'color': '#333'
-			},
-			'.td-message-title': {
-				'font-size': '22px',
-				'margin-bottom': '2px'
-			},
-			'.td-message-text': {
-				'font-size': '16px',
-				'line-height': '18px'
-			},
-			'.td-message-title+.td-message-text': {
-				'font-size': '14px',
-				'line-height': '16px',
-				'color': '#666',
-			},
-			// CALL TO ACTIONS
-			'.td-message-action': {
-				'display': 'inline-block',
-				'margin-left': '10px'
-			},
-			'.td-message-btn': {
-				'display': 'inline-block',
-				'padding': '10px 20px',
-				'border-radius': '5px',
-				'font-size': '16px',
-				'font-weight': 'lighter',
-				'font-family': 'Helvetica, Arial, "Microsoft YaHei", 微软雅黑, "SimHei", "中易黑体",sans-serif',
-				'text-decoration': 'none'
-			},
-			'.td-btn-primary': {
-				'background-color': '#007FDA',
-				'border-color': '#007FDA',
-				'color': '#fff'
-			},
-			// FULL LAYOUT MESSAGE
-			'.td-message-cover': {
-				'opacity': '0',
-				'position': 'relative',
-				'display': 'inline-block',
-				'text-align': 'left',
-				'border-radius': '5px',
-				'box-sizing': 'border-box',
-				'box-shadow': '0px 0px 40px 0px rgba(0,0,0,0.4)',
-				'transition': 'all ease 0.2s'
-			},
-			'.td-message-cover img': {
-				'max-width': '100%',
-				'min-height': '100%',
-				'border-radius': '5px',
-				'vertical-align': 'middle'
-			},
-			'.td-message-cover.active': {
-				'opacity': '1',
-			},
-			'.td-message-cover.fade': {
-				'opacity': '0'
-			},
-			'.td-message-button': {
-				'position': 'absolute',
-			},
-			// CLOSE BUTTON
-			'.td-close-icon': {
-				'position': 'absolute',
-				'top': '5px',
-				'right': '5px',
-				'cursor': 'pointer',
-				'border-radius': '50%',
-				'width': '30px',
-				'display': 'inline-block',
-				'height': '30px',
-				'background-color': '#333',
-				'opacity': '0.4',
-				'-webkit-backface-visibility': 'hidden'
-			},
-			'.td-close-icon:hover': {
-				'opacity': '1'
-			},
-			'.td-close-icon:after, .td-close-icon:before': {
-				'position': 'absolute',
-				'left': '13px',
-				'content': '""',
-				'background-color': '#fff',
-				'height': '18px',
-				'width': '4px',
-				'border-radius': '2px',
-				'top': '6px'
-			},
-			'.td-close-icon:before': {
-			 	'transform': 'rotate(45deg)'
-			},
-			'.td-close-icon:after': {
-			 	'transform': 'rotate(-45deg)'
-			}
 		};
 	}
 
 	TdInAppMessage.prototype.createMessageEl = function() {
+		var $this = this;
+		// ADD CSS STYLES INSIDE OF MESSAGE INSTANCE
+		var injectStyle = function() {
+	        var cssFile = document.createElement('link');
+	        cssFile.setAttribute('rel', 'stylesheet');
+	        cssFile.setAttribute('type', 'text/css');
+	        cssFile.setAttribute('href', $this.style);
 
-		var messageEl;
+        	// messageEl.appendChild(cssFile);
+        	messageEl.insertBefore(cssFile, messageEl.childNodes[0]);
+		}
+		// ADD JS SCRIPT INSIDE OF MESSAGE INSTANCE
+		var injectScript = function() {
+	    	var scriptFile = document.createElement('script');
+	        scriptFile.setAttribute('src', $this.script);
+        	messageEl.appendChild(scriptFile);
+	    }
 
-		if ( this.html ){
+	    var messageEl;
+		if ( this.template ){
+			// CREATE NODE FROM TEMPLATE STRING
+			var div = document.createElement('div');
+			div.innerHTML = this.template;
+			messageEl = div.childNodes[0];
+			injectStyle();
+			injectScript();
 
+		// KEEP OLD METHOD INCASE OF MISSING TEMPLATE
 		} else {
-			
 			messageEl = document.createElement('div');
-			messageEl.id = 'td-popup-message-' + this.cid + this.mid;
-			messageEl.setAttribute( 'class', 'td-popup-message' );
+			messageEl.id = 'td-message-' + this.cid + this.mid;
+			messageEl.setAttribute( 'class', 'td-message' );
 
 			// SET EACH ELEMENT AS A DOM STRING AND INJECT TO messageEl
 			if (this.layout=='full') {
@@ -251,13 +135,17 @@ define(function() {
 				messageEl.innerHTML = '<div id="td-message-container" class="td-message-container">' + imgEl + bodyEl + actionEl + closeEl + '</div>';
 			}
 
+			// TODO: DO WE NEED FALLBACK IF NO CSS OR SCRIPT FILE IN MSG JSON?
+			injectStyle();
+			injectScript();
+
 		}
 
 		return messageEl;
 
 	}
 
-	TdInAppMessage.prototype.injectStyles = function() {
+	TdInAppMessage.prototype.createWrapperEl = function() {
 
         var createStyleText = function(styleDefs) {
             var st = '';
@@ -272,134 +160,35 @@ define(function() {
             return st;
         };
 
-        // ATTACH STYLES TO DOM
-        var styleText = createStyleText(this.messageStyles);
         var headEl = document.head || document.getElementsByTagName('head')[0] || document.documentElement;
-        var styleEl = document.createElement('style');
-        styleEl.id = 'td-message-styles';
 
-        headEl.appendChild(styleEl);
-        styleEl.setAttribute('type', 'text/css');
+        // ATTACH WRAPPER STYLES TO DOM
+        if ( !document.getElementById('td-wrapper-styles') ) {
+	        var styleText = createStyleText(this.wrapperStyles);
+	        var styleEl = document.createElement('style');
+	        styleEl.id = 'td-wrapper-styles';
+	        styleEl.setAttribute('type', 'text/css');
 
-        if (styleEl.styleSheet) { // IE
-            styleEl.styleSheet.cssText = styleText;
-        } else {
-            styleEl.textContent = styleText;
-        }
+	        headEl.appendChild(styleEl);
+
+	        if (styleEl.styleSheet) { // IE
+	            styleEl.styleSheet.cssText = styleText;
+	        } else {
+	            styleEl.textContent = styleText;
+	        }
+	    }
 
     }
 
     TdInAppMessage.prototype.attachMessageEl = function(messageEl, messageWrapper) {
-    	var self = this;
-    	var preLoadImages = function() {
-    		// IF NONE ATTACH IMAGE
-	        if (!self.image_url) {
-	            attachMessage();
-	            return;
-	        }
-
-	        var _onload = function() {
-	        	// SAVE IMAGE H & W > IF NONE FOUND SET DEFAULT TO TD MESSAGE CREATOR DEFAULT
-        		self.image_h = imgObj.height ? imgObj.height : self.is_portrait ? 406 : 256;
-        		self.image_w = imgObj.width ? imgObj.width : self.is_portrait ? 256 : 406;
-        		attachMessage();
-	        };
-
-	        var imgObj = new Image();
-	        imgObj.src = self.image_url;
-	        imgObj.onload = _onload;
-
-	    };
-
-	    var attachMessage = function() {
-	    	// ATTACH MESSAGE ELEMENT TO MESSAGES WRAPPER
-	    	// IF TOP LAYOUT PREPEND TO TOP
-	    	if (self.layout=='top'){
-	    		messageWrapper.insertBefore(messageEl, messageWrapper.childNodes[0]);
-	    	} else {
-	    		// ELSE APPEND TO BOTTOM 
-	    		messageWrapper.appendChild(messageEl);
-	    	}
-			// WAIT FOR DOM ELEMENT TO BE CREATED TO APPLY CSS CLASS -> TRIGGERING ANIMATION
-			var delayClose,
-				msgClosing = false;
-
-			// IF FULL SELECT COVER ELEMENT OTHERWISE CONTAINER
-			var messageContainer = self.layout=='full' ? messageEl.querySelector('#td-message-cover') :
-				messageEl.querySelector('#td-message-container');
-
-			var _startDelayClose = function() {
-				// IF DELAY SET TO 0 NEVER CLOSE AUTOMATICALLY
-				if( self.display_time > 0 ) {
-					// PREVENT RUNNING DUPLICATE CLOSINGS
-					if(!msgClosing) {
-						delayClose = setTimeout( function(){
-							_closeMessage();
-						}, self.display_time * 1000);
-					}
-				}
-			};
-
-			var _closeMessage = function() {
-				msgClosing = true;
-				_addNewClass( messageContainer, 'fade');
-				// WAIT FOR ANIMATION TIMING 0.2s THEN REMOVE NODE
-				setTimeout( function(){
-					messageWrapper.removeChild(messageEl);
-					if (!messageWrapper.hasChildNodes()) {
-						document.body.removeChild(messageWrapper);
-					}
-				}, 200);
-			};
-			var _addNewClass = function(element, className) {
-				var currentClass = element.getAttribute('class');
-				element.setAttribute('class', currentClass+' '+className);
-			};
-
-		    // IF LAYOUT FULL SET VERTICAL HEIGHT AND BUTTONS BEFORESHOWING
-		    if ( self.layout == 'full' ) {
-		    	messageWrapper.setAttribute('style', 'height: '+ self.image_h +'px; width: '+ self.image_w +'px;' );
-		    }
-
-			setTimeout( function(){ 
-				_addNewClass(messageContainer, 'active');
-				//SET TIMEOUT ACCORING TO display_time TO FADE OUT AND REMOVE OBJECT
-				_startDelayClose();
-
-				// PREVENT MESSAGE FROM FADING WHILE HOVERED OVER
-				messageContainer.addEventListener('mouseenter', function(){
-					msgClosing = false;
-					clearTimeout(delayClose);
-				});
-				// RESTART FADE AFTER LEAVE
-				messageContainer.addEventListener('mouseleave', function(){
-					_startDelayClose(); 
-				});
-
-				// ADD CLOSE FUNCTION FOR CLOSE BUTTON
-				var closeButton = messageEl.querySelector('#td-close-icon');
-				closeButton.addEventListener('click', function(e){
-					clearTimeout(delayClose);
-					_closeMessage();
-				});
-
-				//EVENT LISTENER FOR MESSAGE CLICK ( GO TO ACTION URL );
-				if ( self.layout!='full' && self.action && self.action.type=='url' ) {
-					var messageLink = messageEl.querySelector('#td-message-btn');
-					messageLink.addEventListener('click', function(e) {
-						tongdao.track('!open_message', { '!message_id': self.mid, '!campaign_id': self.cid });
-					});
-				}
-
-				tongdao.track('!receive_message', { '!message_id': self.mid, '!campaign_id': self.cid });
-
-			}, 100);
-
-	    };
-
-	    // CHECK FOR IMAGES AND PRELOAD BEFORE ATTACHING
-	    preLoadImages();
-
+    	// ATTACH MESSAGE ELEMENT TO MESSAGES WRAPPER
+    	// IF TOP LAYOUT PREPEND TO TOP
+    	if (this.layout=='top' && messageWrapper.childNodes.length){
+    		messageWrapper.insertBefore(messageEl, messageWrapper.childNodes[0]);
+    	} else {
+    		// ELSE APPEND TO BOTTOM
+    		messageWrapper.appendChild(messageEl);
+    	}
     }
 
 	return TdInAppMessage;
