@@ -504,9 +504,6 @@ function(DEFAULT_OPTIONS, Cookie, UUID, UAParser, Request, Validator, TdOrder, T
 		}
 		var data = {};
 
-		return;
-		// END DELETE
-
 		new Request('GET', url, data, appKey, async).send(function(status, response) {
 			try {
 				if (status === 204 || status === 200) {
