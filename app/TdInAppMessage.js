@@ -65,6 +65,8 @@ define(function() {
 
 	TdInAppMessage.prototype.createMessageEl = function() {
 		var $this = this;
+		var messageEl;
+		
 		// ADD CSS STYLES INSIDE OF MESSAGE INSTANCE
 		var injectStyle = function() {
 	        var cssFile = document.createElement('link');
@@ -82,7 +84,6 @@ define(function() {
         	messageEl.appendChild(scriptFile);
 	    }
 
-	    var messageEl;
 		if ( this.template ){
 			// CREATE NODE FROM TEMPLATE STRING
 			var div = document.createElement('div');

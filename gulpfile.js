@@ -1,5 +1,6 @@
 var gulp = require('gulp');
 var clean = require('gulp-clean');
+var cleanCSS = require('gulp-clean-css');
 var webserver = require('gulp-webserver');
 var uglify = require('gulp-uglify');
 var rename = require('gulp-rename');
@@ -9,6 +10,8 @@ var KARMA_CONFIG = '/karma.conf.js';
 var DIST_DIR = './build';
 var OUTPUT_FILE = 'tongdao';
 var SNIPPET_FILE = 'tongdao-snippet';
+var SCRIPT_FILE = 'td_wv-script';
+var STYLES_FILE = 'td_wv-styles';
 
 function filename(name, min) {
 	return name + (min ? '.min' : '') + '.js';
@@ -43,7 +46,7 @@ gulp.task('clean', function () {
 		.pipe(clean());
 });
 
-gulp.task('build', ['clean', 'build-min', 'build-snippet'], function(done) {
+gulp.task('build', ['clean', 'build-min', 'build-snippet', 'build-components'], function(done) {
 	build(devConfig, done);
 });
 
@@ -58,6 +61,20 @@ gulp.task('build-snippet', ['clean'], function() {
 	gulp.src('snippet/snippet.js')
 		.pipe(rename(filename(SNIPPET_FILE, true)))
 		.pipe(uglify())
+		.pipe(gulp.dest(DIST_DIR));
+});
+
+gulp.task('build-components', ['clean'], function() {
+	gulp.src('components/script.js')
+		.pipe(rename(filename(SCRIPT_FILE, false)))
+		.pipe(gulp.dest(DIST_DIR));
+	gulp.src('components/script.js')
+		.pipe(rename(filename(SCRIPT_FILE, true)))
+		.pipe(uglify())
+		.pipe(gulp.dest(DIST_DIR));
+	gulp.src('components/styles.css')
+		.pipe(rename(STYLES_FILE + '.css'))
+		.pipe(cleanCSS({compatibility: 'ie8'}))
 		.pipe(gulp.dest(DIST_DIR));
 });
 
