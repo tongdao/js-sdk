@@ -53,13 +53,7 @@ define(function() {
 			},
 			'#td-wrapper-bottom': {
 				'bottom': '10px'
-			},
-			'.td-message': {
-				'text-align': 'center'
-			},
-			'.td-message-container.hidden, .td-message-cover.hidden': {
-				'display': 'none'
-			},
+			}
 		};
 	}
 
