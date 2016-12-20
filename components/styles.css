@@ -109,6 +109,7 @@ div.td-message-container {
 
 .td-message-btn {
 	display: inline-block;
+	cursor: pointer;
 	position: absolute;
 	padding: 7px 5px;
 	right: 5px;
@@ -128,11 +129,13 @@ div.td-message-container {
 }
 
 .td-btn-primary {
-	background-color: #007FDA;
-	border-color: #007FDA;
+	background-color: #5a9aef;
+	border-color: #5a9aef;
 	color: #fff;
 }
 .td-btn-primary:hover, .td-btn-primary:focus, .td-btn-primary:active {
+	background-color: #4887df;
+	border-color: #4887df;
 	color: #fff;
 }
 

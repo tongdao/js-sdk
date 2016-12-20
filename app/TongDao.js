@@ -561,8 +561,15 @@ function(DEFAULT_OPTIONS, Cookie, UUID, UAParser, Request, Validator, TdOrder, T
 					trackReceive: function(){
 						tongdao.track('!receive_message', { '!message_id': tdMessage.mid, '!campaign_id': tdMessage.cid });
 					},
-					trackOpen: function(){
+					trackOpen: function(href, type){
 						tongdao.track('!open_message', { '!message_id': tdMessage.mid, '!campaign_id': tdMessage.cid });
+						if ( type='url' ){
+							// ON URL LINK OPEN IN NEW WINDOW
+							window.open(href,'_blank');
+						} else {
+							// ON DEEPLINK JUST NAVIGATE TO URL
+							window.location.href = href;
+						}
 					},
 					closeMessage: function(){
 						tdWrapper.removeChild(messageEl);

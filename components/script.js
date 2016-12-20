@@ -125,16 +125,21 @@
 			if ( message.layout!='full' ) {
 				var messageLink = container.querySelector('#td-message-btn');
 				if ( messageLink ) {
+					// GET LINK DATA FROM CTA DATASETS
+					var href = messageLink.dataset.href;
+					var type = messageLink.dataset.type;
 					messageLink.addEventListener('click', function(e) {
-						td_wv.trackOpen();
+						td_wv.trackOpen(href, type);
 					});
 				}
 			} else {
 				var buttonLinks = container.querySelectorAll('.td-message-button') || [];
 				if( buttonLinks.length ) {
 					buttonLinks.forEach( function(btn){
+						var href = btn.dataset.href;
+						var type = btn.dataset.type;
 						btn.addEventListener('click', function(e){
-							td_wv.trackOpen();
+							td_wv.trackOpen(href, type);
 						});
 					});
 				}
