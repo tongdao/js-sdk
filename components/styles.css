@@ -166,6 +166,7 @@ div.td-message-container {
 
 .td-message-button {
 	position: absolute;
+	cursor: pointer;
 }
 
 /*CLOSE BUTTON*/

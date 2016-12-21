@@ -76,12 +76,13 @@
 			element.setAttribute('class', currentClass+' '+className);
 		};
 
-	  	// IF LAYOUT FULL SET VERTICAL HEIGHT AND BUTTONS BEFORESHOWING
+	  	// IF LAYOUT FULL SET VERTICAL HEIGHT AND BUTTONS BEFORE SHOWING
 	    if ( message.layout == 'full' ) {
 
 	    	// GET WRAPPER > IF WEBVIEW JUST USE WINDOW
 			var wrapper = document.getElementById('td-wrapper-' + message.layout );
 			var img = container.querySelector('img');
+			var buttonLinks = container.querySelectorAll('.td-message-button')
 
 			if ( wrapper ) {
 				wrapper.setAttribute('style', 'height: '+ message.image_h +'px; width: '+ message.image_w +'px;' );
@@ -100,6 +101,18 @@
 				container.setAttribute('style', sizeAttr );
 				img.setAttribute('style', sizeAttr );
 				
+			}
+
+			// SET BUTTONS BASED ON IMG/CONTAINER SIZE
+			if( buttonLinks.length ) {
+				buttonLinks.forEach( function(btn){
+					var buttonX = parseFloat(btn.dataset.x),
+						buttonY = parseFloat(btn.dataset.y),
+						buttonH = parseFloat(btn.dataset.h),
+						buttonW = parseFloat(btn.dataset.w);
+
+					btn.setAttribute('style', 'top: ' + ( buttonY * 100 ) + '%; ' + 'left: ' + ( buttonX * 100 ) + '%; ' + 'width: ' + ( buttonW * 100 ) + '%; ' + 'height: ' + ( buttonH * 100 ) + '%;' );					
+				});
 			}
 	    }
 
