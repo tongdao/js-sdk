@@ -90,12 +90,11 @@
 				var wDif = window.innerWidth / message.image_w;
 				var hDif = window.innerHeight / message.image_h;
 
+				var sizeAttr;
 				if ( wDif < hDif ) {
 					sizeAttr = 'width: 100%; ';
-					posAttr = 'top: ' + (window.innerHeight - message.image_h) / 2  + 'px; ';
 				} else {
 					sizeAttr = 'height: 100%; ';
-					posAttr = 'left: ' + (window.innerWidth - message.image_w) / 2  + 'px; ';
 				}
 
 				container.setAttribute('style', sizeAttr );
