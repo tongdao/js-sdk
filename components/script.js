@@ -81,19 +81,25 @@
 
 	    	// GET WRAPPER > IF WEBVIEW JUST USE WINDOW
 			var wrapper = document.getElementById('td-wrapper-' + message.layout );
+			var img = container.querySelector('img');
 
 			if ( wrapper ) {
 				wrapper.setAttribute('style', 'height: '+ message.image_h +'px; width: '+ message.image_w +'px;' );
 			} else {
-				container.setAttribute('style', 'height: '+ window.innerHeight +'px; width: '+ window.innerWidth +'px;' );
-
-				// DETECH WHICH WAY TO STRECH 100%;
+				// DETECT WHICH WAY TO STRECH 100%;
 				var wDif = window.innerWidth / message.image_w;
 				var hDif = window.innerHeight / message.image_h;
-				var attr = wDif < hDif ? 'width' : 'height';
 
-				var img = container.querySelector('img');
-				img.setAttribute('style', attr + ': 100%;' );
+				if ( wDif < hDif ) {
+					sizeAttr = 'width: 100%; ';
+					posAttr = 'top: ' + (window.innerHeight - message.image_h) / 2  + 'px; ';
+				} else {
+					sizeAttr = 'height: 100%; ';
+					posAttr = 'left: ' + (window.innerWidth - message.image_w) / 2  + 'px; ';
+				}
+
+				container.setAttribute('style', sizeAttr );
+				img.setAttribute('style', sizeAttr );
 				
 			}
 	    }
