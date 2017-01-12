@@ -492,7 +492,7 @@ function(DEFAULT_OPTIONS, Cookie, UUID, UAParser, Request, Validator, TdOrder, T
 
 		// FUNCTION SHOULD CALL API WITH CURRENT USER ID AND RETURN ANY INBOX MESSAGES
 		var userId = options.userId || options.deviceId;
-		var url = 'https://api.tongrd.com/v2/messages?user_id=' + userId;
+		var url = 'https://api.tongdao.io/v2/messages?user_id=' + userId;
 		var appKey = options.appKey;
 		
 		// CHECK FOR REQUIRED userId
