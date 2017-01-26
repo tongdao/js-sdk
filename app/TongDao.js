@@ -527,13 +527,14 @@ function(DEFAULT_OPTIONS, Cookie, UUID, UAParser, Request, Validator, TdOrder, T
 		// FETCH MESSAGES DATA AND THEN CREATE AND ATTACH RETURNED MESSAGES
 		checkForInAppMessage( function( data ) {
 			// RETURN IF NO MESSAGES
-			if (!data.messages.length) {
+			if (!data.length) {
+				_log(' No Messages Found');
 				if (callback) callback();
 				return;
 			}
 
 			// LOOPS THROUGH MESSAGES WITH SLIGHT DELAY
-			var messages = data.messages;
+			var messages = data;
 			var messageLength = messages.length;
 			var counter = 0;
 			var firstFull = true;
