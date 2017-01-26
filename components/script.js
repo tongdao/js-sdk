@@ -88,14 +88,21 @@
 				wrapper.setAttribute('style', 'height: '+ message.image_h +'px; width: '+ message.image_w +'px;' );
 			} else {
 				// DETECT WHICH WAY TO STRECH 100%;
-				var wDif = window.innerWidth / message.image_w;
-				var hDif = window.innerHeight / message.image_h;
+				// GET WEBVIEW ATTRIBUTES
+				var view = JSON.parse(td_wv.getWindowSettings());
+				view.width = parseInt(view.width);
+				view.height = parseInt(view.height);
+				console.log(view)
+				var wDif = view.width / message.image_w;
+				var hDif = view.height / message.image_h;
 
 				var sizeAttr;
 				if ( wDif < hDif ) {
-					sizeAttr = 'width: 100%; ';
+					sizeAttr = 'width: ' + view.width + 'px; ' +
+								'height: ' + ( message.image_h * wDif ) + 'px;';
 				} else {
-					sizeAttr = 'height: 100%; ';
+					sizeAttr = 'height: ' + view.height + 'px; ' +
+								'width: ' + ( message.image_w * hDif ) + 'px;';
 				}
 
 				container.setAttribute('style', sizeAttr );
