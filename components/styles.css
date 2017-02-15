@@ -7,7 +7,7 @@
 .td-message-top,
 .td-message-bottom {
 	text-align: center;
-	margin: 0 7px 0 4px;
+	margin: 4px;
 }
 
 .td-message-container,
@@ -19,8 +19,10 @@
 }
 .td-message-container.active,
 .td-message-cover.active {
+	display: block !important;
 	opacity: 1;
 }
+
 .td-message-container.fade,
 .td-message-cover.fade {
 	opacity: 0;
@@ -30,7 +32,8 @@
 
 .td-message-container {
 	width: 100%;
-	margin: 10px auto;
+	height: 72px;
+	padding: 8px;
 	text-align: left;
 	background: #fff;
 	border-radius: 10px;
@@ -55,9 +58,9 @@ div.td-message-container {
 	overflow: hidden;
 	display: inline-block;
 	vertical-align: top;
-	margin: 8px 3px;
-	height: 44px;
-	width: 44px;
+	margin-right: 6px;
+	height: 56px;
+	width: 56px;
 }
 
 .td-message-image img {
@@ -67,38 +70,42 @@ div.td-message-container {
 }
 
 .td-message-body {
-	width: 60%;
-	min-height: 60px;
+	width: 55%;
 	display: inline-block;
-	padding: 8px 3px;
 	vertical-align: top;
-	font-family: Helvetica, Arial, "Microsoft YaHei", 微软雅黑, "SimHei", "中易黑体",sans-serif;
+	font-family: 'OpenSans', Helvetica, Arial, "Microsoft YaHei", 微软雅黑, "SimHei", "中易黑体",sans-serif;
 	letter-spacing: 0.5px;
 	color: #333;
 }
 
 .td-message-body:first-child {
-	padding-left: 8px;
-	width: 75%;
+	width: 74%;
 }
 .td-message-body:nth-last-child(2) {
 	width: 78%;
 }
+.td-message-body:first-child:nth-last-child(2) {
+	width: 90%;
+}
 
 .td-message-title {
-	font-size: 16px;
-	line-height: 16px;
+	font-size: 14px;
+	line-height: 19px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+	font-family: 'OpenSans-Semibold'
 }
 
 .td-message-text {
-	font-size: 16px;
-	line-height: 18px
+	font-size: 12px;
+	line-height: 17px;
+	height: 54px;
 }
 
 .td-message-title+.td-message-text {
-	font-size: 12px;
-	line-height: 14px;
 	color: #666;
+	height: 37px;
 }
 
 /*CALL TO ACTION*/
@@ -108,29 +115,24 @@ div.td-message-container {
 }
 
 .td-message-btn {
+	position: absolute;
+	width: 23%;
+	right: 8px;
+	bottom: 8px;
 	display: inline-block;
 	cursor: pointer;
-	position: absolute;
-	padding: 7px 5px;
-	right: 5px;
-	bottom: 5px;
+	vertical-align: bottom;
+	padding: 6px 0;
 	text-align: center;
-	width: 20%;
-	border-radius: 5px;
-	font-size: 11px;
-	font-weight: lighter;
-	font-family: Helvetica, Arial, "Microsoft YaHei", 微软雅黑, "SimHei", "中易黑体",sans-serif;
+	border-radius: 3px;
+	font-size: 13px;
+	font-family: 'OpenSans-Semibold', Helvetica, Arial, "Microsoft YaHei", 微软雅黑, "SimHei", "中易黑体",sans-serif;
 	text-decoration: none;
 }
 
-.td-message-btn:nth-child(2) {
-	padding: 7px 5px;
-	width: 23%;
-}
-
 .td-btn-primary {
-	background-color: #5a9aef;
-	border-color: #5a9aef;
+	background-color: #2681FF;
+	border-color: #2681FF;
 	color: #fff;
 }
 .td-btn-primary:hover, .td-btn-primary:focus, .td-btn-primary:active {
@@ -173,24 +175,20 @@ div.td-message-container {
 
 .td-close-icon {
 	position: absolute;
-	top: -4px;
-	right: -4px;
+	top: 3px;
+	right: 3px;
 	cursor: pointer;
 	border-radius: 50%;
 	width: 23px;
 	display: inline-block;
 	height: 23px;
 	background-color: #333;
-    background-color: rgba(0, 0, 0, 0.6);
+    background-color: rgba(0, 0, 0, 0.3);
 	-webkit-backface-visibility: hidden;
-}
-.td-message-cover .td-close-icon {
-	top: 2px;
-	right: 2px;
 }
 
 .td-close-icon:hover {
-	background-color: rgb(0, 0, 0);
+	background-color: rgb(0, 0, 0, 1);
 }
 
 .td-close-icon:after, .td-close-icon:before {
