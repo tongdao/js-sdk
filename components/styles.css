@@ -147,7 +147,11 @@ div.td-message-container {
 	position: absolute;
 	top: 50%; 
 	left: 50%; 
-	transform: translate(-50%, -50%);
+-webkit-transform: translate(-50%, -50%);
+   -moz-transform: translate(-50%, -50%);
+    -ms-transform: translate(-50%, -50%);
+     -o-transform: translate(-50%, -50%);
+    	transform: translate(-50%, -50%);
 	border-radius: 3px;
 	box-shadow: 0px 0px 40px 0px rgba(0,0,0,0.4);
 }
@@ -185,6 +189,7 @@ div.td-message-container {
 	background-color: #333;
     background-color: rgba(0, 0, 0, 0.3);
 	-webkit-backface-visibility: hidden;
+	backface-visibility: hidden;
 }
 
 .td-close-icon:hover {
@@ -203,9 +208,17 @@ div.td-message-container {
 }
 
 .td-close-icon:before {
- 	transform: rotate(45deg);
+	-webkit-transform: rotate(45deg);
+       -moz-transform: rotate(45deg);
+        -ms-transform: rotate(45deg);
+         -o-transform: rotate(45deg);
+            transform: rotate(45deg);
 }
 
 .td-close-icon:after {
- 	transform: rotate(-45deg);
+ 	-webkit-transform: rotate(-45deg);
+       -moz-transform: rotate(-45deg);
+        -ms-transform: rotate(-45deg);
+         -o-transform: rotate(-45deg);
+            transform: rotate(-45deg);
 }

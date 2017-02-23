@@ -112,14 +112,15 @@
 
 			// SET BUTTONS BASED ON IMG/CONTAINER SIZE
 			if( buttonLinks.length ) {
-				buttonLinks.forEach( function(btn){
-					var buttonX = parseFloat(btn.dataset.x),
-						buttonY = parseFloat(btn.dataset.y),
-						buttonH = parseFloat(btn.dataset.h),
-						buttonW = parseFloat(btn.dataset.w);
+				
+				for ( var i = 0; i < buttonLinks.length; i++ ) {
+					var buttonX = parseFloat(buttonLinks[i];.dataset.x),
+						buttonY = parseFloat(buttonLinks[i];.dataset.y),
+						buttonH = parseFloat(buttonLinks[i];.dataset.h),
+						buttonW = parseFloat(buttonLinks[i];.dataset.w);
 
-					btn.setAttribute('style', 'top: ' + ( buttonY * 100 ) + '%; ' + 'left: ' + ( buttonX * 100 ) + '%; ' + 'width: ' + ( buttonW * 100 ) + '%; ' + 'height: ' + ( buttonH * 100 ) + '%;' );					
-				});
+					buttonLinks[i];.setAttribute('style', 'top: ' + ( buttonY * 100 ) + '%; ' + 'left: ' + ( buttonX * 100 ) + '%; ' + 'width: ' + ( buttonW * 100 ) + '%; ' + 'height: ' + ( buttonH * 100 ) + '%;' );	
+				}
 			}
 	    }
 
@@ -160,13 +161,14 @@
 			} else {
 				var buttonLinks = container.querySelectorAll('.td-message-button') || [];
 				if( buttonLinks.length ) {
-					buttonLinks.forEach( function(btn){
-						var href = btn.dataset.href;
-						var type = btn.dataset.type;
-						btn.addEventListener('click', function(e){
+
+					for ( var i = 0; i < buttonLinks.length; i++ ) {
+						var href = buttonLinks[i].dataset.href;
+						var type = buttonLinks[i].dataset.type;
+						buttonLinks[i].addEventListener('click', function(e){
 							td_wv.trackOpen(href, type);
 						});
-					});
+					}
 				}
 			}
 
