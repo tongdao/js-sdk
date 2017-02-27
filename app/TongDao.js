@@ -563,8 +563,8 @@ function(DEFAULT_OPTIONS, Cookie, UUID, UAParser, Request, Validator, TdOrder, T
 						tongdao.track('!receive_message', { '!message_id': tdMessage.mid, '!campaign_id': tdMessage.cid });
 					},
 					trackOpen: function( data ){
-						var href = '',
-							type = '';
+						var href = '';
+						var type = '';
 
 						if ( data ) {
 							href = data.href || '';

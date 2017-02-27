@@ -109,7 +109,7 @@
 			} else {
 				// DETECT WHICH WAY TO STRECH 100%;
 				// GET WEBVIEW ATTRIBUTES
-				var view = JSON.parse( webviewFunction( 'getWindowSettings' );
+				var view = JSON.parse( webviewFunction( 'getWindowSettings' ) );
 				view.width = parseInt(view.width);
 				view.height = parseInt(view.height);
 				console.log(view)
