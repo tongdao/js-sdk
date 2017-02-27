@@ -562,11 +562,19 @@ function(DEFAULT_OPTIONS, Cookie, UUID, UAParser, Request, Validator, TdOrder, T
 					trackReceive: function(){
 						tongdao.track('!receive_message', { '!message_id': tdMessage.mid, '!campaign_id': tdMessage.cid });
 					},
-					trackOpen: function(href, type){
+					trackOpen: function( data ){
+						var href = '',
+							type = '';
+
+						if ( data ) {
+							href = data.href || '';
+							type = data.type || '';
+						}
+
 						tongdao.track('!open_message', { '!message_id': tdMessage.mid, '!campaign_id': tdMessage.cid });
-						if ( type='url' ){
+						if ( type == 'url' ){
 							// ON URL LINK OPEN IN NEW WINDOW
-							window.open(href,'_blank');
+							window.open( href, '_blank' );
 						} else {
 							// ON DEEPLINK JUST NAVIGATE TO URL
 							window.location.href = href;

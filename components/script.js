@@ -3,7 +3,27 @@
 	// CONTAINER DOM EL
 	var container,
 	// MESSAGE DATA
-		message = {};
+		message = {},
+		ios = false;
+
+	// FOR iOS DEVICES ONLY > MAKE BRIDGE CONNECTION FOR FUNCTION COMMUNICATION
+	var setupWebViewJavascriptBridge = function(callback) {
+        if ( window.WebViewJavascriptBridge ) { 
+        	return callback( WebViewJavascriptBridge ); 
+        }
+        if ( window.WVJBCallbacks ) { 
+        	return window.WVJBCallbacks.push( callback ); 
+        }
+        window.WVJBCallbacks = [callback];
+
+        var WVJBIframe = document.createElement('iframe');
+        WVJBIframe.style.display = 'none';
+        WVJBIframe.src = 'https://__bridge_loaded__';
+        document.documentElement.appendChild(WVJBIframe);
+        setTimeout( function() { 
+        	document.documentElement.removeChild(WVJBIframe) 
+        }, 0);
+    };
 
 	var loadMessage = function() {
 
@@ -67,7 +87,7 @@
 			_addNewClass( container, 'fade');
 			// WAIT FOR ANIMATION TIMING 0.2s THEN REMOVE NODE
 			setTimeout( function(){
-				td_wv.closeMessage();
+				webviewFunction( 'closeMessage' );
 			}, 200);
 		};
 
@@ -89,7 +109,7 @@
 			} else {
 				// DETECT WHICH WAY TO STRECH 100%;
 				// GET WEBVIEW ATTRIBUTES
-				var view = JSON.parse(td_wv.getWindowSettings());
+				var view = JSON.parse( webviewFunction( 'getWindowSettings' );
 				view.width = parseInt(view.width);
 				view.height = parseInt(view.height);
 				console.log(view)
@@ -114,12 +134,12 @@
 			if( buttonLinks.length ) {
 				
 				for ( var i = 0; i < buttonLinks.length; i++ ) {
-					var buttonX = parseFloat(buttonLinks[i];.dataset.x),
-						buttonY = parseFloat(buttonLinks[i];.dataset.y),
-						buttonH = parseFloat(buttonLinks[i];.dataset.h),
-						buttonW = parseFloat(buttonLinks[i];.dataset.w);
+					var buttonX = parseFloat(buttonLinks[i].dataset.x),
+						buttonY = parseFloat(buttonLinks[i].dataset.y),
+						buttonH = parseFloat(buttonLinks[i].dataset.h),
+						buttonW = parseFloat(buttonLinks[i].dataset.w);
 
-					buttonLinks[i];.setAttribute('style', 'top: ' + ( buttonY * 100 ) + '%; ' + 'left: ' + ( buttonX * 100 ) + '%; ' + 'width: ' + ( buttonW * 100 ) + '%; ' + 'height: ' + ( buttonH * 100 ) + '%;' );	
+					buttonLinks[i].setAttribute('style', 'top: ' + ( buttonY * 100 ) + '%; ' + 'left: ' + ( buttonX * 100 ) + '%; ' + 'width: ' + ( buttonW * 100 ) + '%; ' + 'height: ' + ( buttonH * 100 ) + '%;' );	
 				}
 			}
 	    }
@@ -155,7 +175,7 @@
 					var href = messageLink.dataset.href;
 					var type = messageLink.dataset.type;
 					messageLink.addEventListener('click', function(e) {
-						td_wv.trackOpen(href, type);
+						webviewFunction( 'trackOpen', { href: href, type: type } );
 					});
 				}
 			} else {
@@ -166,17 +186,43 @@
 						var href = buttonLinks[i].dataset.href;
 						var type = buttonLinks[i].dataset.type;
 						buttonLinks[i].addEventListener('click', function(e){
-							td_wv.trackOpen(href, type);
+							webviewFunction( 'trackOpen', { href: href, type: type } );
 						});
 					}
 				}
 			}
 
-			td_wv.trackReceive();
+			webviewFunction( 'trackReceive' );
 
 		}, 100);
 	};
+
+	var webviewFunction = function( functionName, data ) {
+		if ( ios ) {
+			bridge.callHandler( functionName, data, function responseCallback(responseData) {
+	            console.log("JS received response:", responseData)
+	        });
+		} else {
+			td_wv[functionName](data);
+		}
+	}
 	// LOAD ALL IMAGES BEFORE DISPLAY
-	loadMessage();
+	var userAgent = navigator.userAgent || navigator.vendor || window.opera;
+    // IF IOS DEVICE, BUILD BRIDGE FROM DEVICE TO WEBVIEW
+    if ( /iPad|iPhone|iPod/.test(userAgent) && !window.MSStream ) {
+    	ios = true;
+	    setupWebViewJavascriptBridge( function( bridge ) {
+
+	        bridge.registerHandler('JS Echo', function(data, responseCallback) {
+	            console.log("JS Echo called with:", data)
+	            responseCallback(data)
+	        });
+	        // AFTER BRIDGE COMPLETED LOAD MESSAGE
+	        loadMessage();
+	    } );
+    } else {
+    // ELSE JUST LOAD MESSAGE
+    	loadMessage();
+    }
 
 })();
