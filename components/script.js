@@ -109,10 +109,16 @@
 			} else {
 				// DETECT WHICH WAY TO STRECH 100%;
 				// GET WEBVIEW ATTRIBUTES
-				var view = JSON.parse( webviewFunction( 'getWindowSettings' ) );
+				var windowSettings = webviewFunction( 'getWindowSettings' );
+				var view;
+				if ( typeof windowSettings == 'string' ) {
+					view = JSON.parse( windowSettings );
+				} else {
+					view = windowSettings;
+				}
+
 				view.width = parseInt(view.width);
 				view.height = parseInt(view.height);
-				console.log(view)
 				var wDif = view.width / message.image_w;
 				var hDif = view.height / message.image_h;
 
@@ -132,7 +138,6 @@
 
 			// SET BUTTONS BASED ON IMG/CONTAINER SIZE
 			if( buttonLinks.length ) {
-				
 				for ( var i = 0; i < buttonLinks.length; i++ ) {
 					var buttonX = parseFloat(buttonLinks[i].dataset.x),
 						buttonY = parseFloat(buttonLinks[i].dataset.y),
@@ -199,13 +204,16 @@
 
 	var webviewFunction = function( functionName, data ) {
 		if ( ios ) {
-			bridge.callHandler( functionName, data, function responseCallback(responseData) {
-	            console.log("JS received response:", responseData)
+			WebViewJavascriptBridge.callHandler( functionName, data, function responseCallback(responseData) {
+				if ( responseData ) {
+					console.log("JS received response:", responseData);
+	            	return responseData;
+				}
 	        });
 		} else {
 			td_wv[functionName](data);
 		}
-	}
+	};
 	// LOAD ALL IMAGES BEFORE DISPLAY
 	var userAgent = navigator.userAgent || navigator.vendor || window.opera;
     // IF IOS DEVICE, BUILD BRIDGE FROM DEVICE TO WEBVIEW
