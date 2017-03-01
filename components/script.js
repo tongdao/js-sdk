@@ -87,7 +87,7 @@
 			_addNewClass( container, 'fade');
 			// WAIT FOR ANIMATION TIMING 0.2s THEN REMOVE NODE
 			setTimeout( function(){
-				webviewFunction( 'closeMessage' );
+				ios ? webviewFunction( 'closeMessage' ) : td_wv.closeMessage();
 			}, 200);
 		};
 
@@ -107,33 +107,38 @@
 			if ( wrapper ) {
 				wrapper.setAttribute('style', 'height: '+ message.image_h +'px; width: '+ message.image_w +'px;' );
 			} else {
-				// DETECT WHICH WAY TO STRECH 100%;
-				// GET WEBVIEW ATTRIBUTES
-				var windowSettings = webviewFunction( 'getWindowSettings' );
-				var view;
-				if ( typeof windowSettings == 'string' ) {
-					view = JSON.parse( windowSettings );
-				} else {
-					view = windowSettings;
-				}
+				var callback = function(response){
+	    			// DETECT WHICH WAY TO STRECH 100%;
+					// GET WEBVIEW ATTRIBUTES
+					var windowSettings = response;
+					var view;
+					console.log( 'windowSettings: ', windowSettings )
+					if ( typeof windowSettings == 'string' ) {
+						view = JSON.parse( windowSettings );
+					} else {
+						view = windowSettings;
+					}
 
-				view.width = parseInt(view.width);
-				view.height = parseInt(view.height);
-				var wDif = view.width / message.image_w;
-				var hDif = view.height / message.image_h;
+					console.log( view );
+					if ( typeof view.width == 'string' ) view.width = parseInt(view.width);
+					if ( typeof view.height == 'string' ) view.height = parseInt(view.height);
+					var wDif = view.width / message.image_w;
+					var hDif = view.height / message.image_h;
 
-				var sizeAttr;
-				if ( wDif < hDif ) {
-					sizeAttr = 'width: ' + view.width + 'px; ' +
-								'height: ' + ( message.image_h * wDif ) + 'px;';
-				} else {
-					sizeAttr = 'height: ' + view.height + 'px; ' +
-								'width: ' + ( message.image_w * hDif ) + 'px;';
-				}
+					var sizeAttr;
+					if ( wDif < hDif ) {
+						sizeAttr = 'width: ' + view.width + 'px; ' +
+									'height: ' + ( message.image_h * wDif ) + 'px;';
+					} else {
+						sizeAttr = 'height: ' + view.height + 'px; ' +
+									'width: ' + ( message.image_w * hDif ) + 'px;';
+					}
 
-				container.setAttribute('style', sizeAttr );
-				img.setAttribute('style', sizeAttr );
-				
+					container.setAttribute('style', sizeAttr );
+					img.setAttribute('style', sizeAttr );
+	    		};
+				// FOR MOBILE PUT SIZE ATTRIBUTES IN CALLBACK TO HANDLE iOS BRIDGE ASYNC
+				ios ? webviewFunction( 'getWindowSettings', null, callback ) : callback( td_wv.getWindowSettings() );
 			}
 
 			// SET BUTTONS BASED ON IMG/CONTAINER SIZE
@@ -180,7 +185,9 @@
 					var href = messageLink.dataset.href;
 					var type = messageLink.dataset.type;
 					messageLink.addEventListener('click', function(e) {
-						webviewFunction( 'trackOpen', { href: href, type: type } );
+						ios ? 
+							webviewFunction( 'trackOpen', { href: href, type: type }) : 
+							td_wv.trackOpen( JSON.stringify({ href: href, type: type }) ) ;
 					});
 				}
 			} else {
@@ -191,28 +198,28 @@
 						var href = buttonLinks[i].dataset.href;
 						var type = buttonLinks[i].dataset.type;
 						buttonLinks[i].addEventListener('click', function(e){
-							webviewFunction( 'trackOpen', { href: href, type: type } );
+							ios ? 
+								webviewFunction( 'trackOpen', { href: href, type: type }) : 
+								td_wv.trackOpen( JSON.stringify({ href: href, type: type }) ) ;
 						});
 					}
 				}
 			}
 
-			webviewFunction( 'trackReceive' );
+			ios ? webviewFunction( 'trackReceive' ) : td_wv.trackReceive() ;
 
 		}, 100);
 	};
 
-	var webviewFunction = function( functionName, data ) {
-		if ( ios ) {
-			WebViewJavascriptBridge.callHandler( functionName, data, function responseCallback(responseData) {
-				if ( responseData ) {
-					console.log("JS received response:", responseData);
-	            	return responseData;
-				}
-	        });
-		} else {
-			td_wv[functionName](data);
-		}
+	var webviewFunction = function( functionName, data, callback ) {
+		WebViewJavascriptBridge.callHandler( functionName, data, function responseCallback( responseData ) {
+			if ( responseData && callback ) {
+				console.log("JS received response:", responseData);
+            	if ( typeof callback == 'function' ) {
+            		callback( responseData );
+            	}
+			}
+        });
 	};
 	// LOAD ALL IMAGES BEFORE DISPLAY
 	var userAgent = navigator.userAgent || navigator.vendor || window.opera;
@@ -222,12 +229,12 @@
 	    setupWebViewJavascriptBridge( function( bridge ) {
 
 	        bridge.registerHandler('JS Echo', function(data, responseCallback) {
-	            console.log("JS Echo called with:", data)
-	            responseCallback(data)
+	            console.log("JS Echo called with:", data);
+	            responseCallback(data);
 	        });
 	        // AFTER BRIDGE COMPLETED LOAD MESSAGE
 	        loadMessage();
-	    } );
+	    });
     } else {
     // ELSE JUST LOAD MESSAGE
     	loadMessage();

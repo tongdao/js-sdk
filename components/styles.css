@@ -101,6 +101,7 @@ div.td-message-container {
 	font-size: 12px;
 	line-height: 17px;
 	height: 54px;
+	word-wrap: break-word;
 }
 
 .td-message-title+.td-message-text {
