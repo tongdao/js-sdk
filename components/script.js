@@ -112,14 +112,12 @@
 					// GET WEBVIEW ATTRIBUTES
 					var windowSettings = response;
 					var view;
-					console.log( 'windowSettings: ', windowSettings )
 					if ( typeof windowSettings == 'string' ) {
 						view = JSON.parse( windowSettings );
 					} else {
 						view = windowSettings;
 					}
 
-					console.log( view );
 					if ( typeof view.width == 'string' ) view.width = parseInt(view.width);
 					if ( typeof view.height == 'string' ) view.height = parseInt(view.height);
 					var wDif = view.width / message.image_w;
@@ -181,10 +179,10 @@
 			if ( message.layout!='full' ) {
 				var messageLink = container.querySelector('#td-message-btn');
 				if ( messageLink ) {
-					// GET LINK DATA FROM CTA DATASETS
-					var href = messageLink.dataset.href;
-					var type = messageLink.dataset.type;
 					messageLink.addEventListener('click', function(e) {
+						// GET LINK DATA FROM CTA DATASETS
+						var href = e.target.dataset.href;
+						var type = e.target.dataset.type;
 						ios ? 
 							webviewFunction( 'trackOpen', { href: href, type: type }) : 
 							td_wv.trackOpen( JSON.stringify({ href: href, type: type }) ) ;
@@ -195,9 +193,9 @@
 				if( buttonLinks.length ) {
 
 					for ( var i = 0; i < buttonLinks.length; i++ ) {
-						var href = buttonLinks[i].dataset.href;
-						var type = buttonLinks[i].dataset.type;
 						buttonLinks[i].addEventListener('click', function(e){
+							var href = e.target.dataset.href;
+							var type = e.target.dataset.type;
 							ios ? 
 								webviewFunction( 'trackOpen', { href: href, type: type }) : 
 								td_wv.trackOpen( JSON.stringify({ href: href, type: type }) ) ;
