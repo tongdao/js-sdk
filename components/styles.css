@@ -94,7 +94,7 @@ div.td-message-container {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-	font-family: 'OpenSans-Semibold'
+	font-weight: bold;
 }
 
 .td-message-text {
@@ -127,7 +127,7 @@ div.td-message-container {
 	text-align: center;
 	border-radius: 3px;
 	font-size: 13px;
-	font-family: 'OpenSans-Semibold', Helvetica, Arial, "Microsoft YaHei", 微软雅黑, "SimHei", "中易黑体",sans-serif;
+	font-family: 'OpenSans', Helvetica, Arial, "Microsoft YaHei", 微软雅黑, "SimHei", "中易黑体",sans-serif;
 	text-decoration: none;
 }
 
