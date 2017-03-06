@@ -1,6 +1,6 @@
 define(function() {
 	return {
-		apiEndpoint: 'https://api.tongrd.com/v2/events',
+		apiEndpoint: 'https://api.tongdao.io/v2/events',
 		cookieExpirationDays: 365 * 5,
 		cookieName: 'tongdao_id',
 		domain: undefined,

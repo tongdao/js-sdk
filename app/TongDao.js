@@ -488,67 +488,11 @@ function(DEFAULT_OPTIONS, Cookie, UUID, UAParser, Request, Validator, TdOrder, T
 		track('!place_order', order);
 	}
 
-	function displayInAppMessage(callback) {
-
-		// FETCH MESSAGES DATA AND THEN CREATE AND ATTACH RETURNED MESSAGES
-		checkForInAppMessage( function( msgData ) {
-			// RETURN IF NO MESSAGES
-			if (!msgData.length) {
-				if (callback) callback();
-				return;
-			}
-
-			// LOOPS THROUGH MESSAGES WITH SLIGHT DELAY
-			var messageLength = msgData.length;
-			var counter = 0;
-			var firstFull = true;
-			(function displayMsg (i) {            
-				// CREATE NEW tdMessage WITH CORRESPONDING DATA
-				var tdMessage = new TdInAppMessage(msgData[i]);
-
-				// CHECK FOR CORRESPONDING POSITION'S MESSAGES WRAPPER AND CREATE IF NONE
-				var tdWrapper = document.getElementById('td-popup-wrapper-' + tdMessage.layout);
-				if (!tdWrapper) {
-					tdWrapper = document.createElement('div');
-					tdWrapper.id = 'td-popup-wrapper-' + tdMessage.layout;
-					document.body.appendChild(tdWrapper);
-				}
-
-				// CREATE MESSAGE ELEMENTS
-				var messageEl = tdMessage.createMessageEl();
-
-				// CHECK FOR MESSAGES CSS, IF NONE INJECT CSS STYLE NODE
-				if ( !document.getElementById('td-message-styles') ) {
-					tdMessage.injectStyles();
-				}
-
-				// CHECK IF FIRST "full" LAYOUR MESSAGE > PREVENT MORE THAN ONE FROM ATTACHING
-				if( tdMessage.layout!='full' || firstFull ) {
-					if(tdMessage.layout=='full') firstFull = false;
-					// PRELOAD IMAGES AND ATTACH MESSAGE TO DOM
-					tdMessage.attachMessageEl(messageEl, tdWrapper);
-				};
-				
-				// DELAY NEXT MESSAGE ATTACHMENT FOR BETTER UI
-				counter++;
-				if (counter<messageLength) {
-					setTimeout(function () { 
-						displayMsg(counter);
-					}, 800);
-				} else {
-					if (callback) callback();
-				}
-			})(counter); 
-
-		} );
-
-	}
-
 	function checkForInAppMessage(callback) {
 
 		// FUNCTION SHOULD CALL API WITH CURRENT USER ID AND RETURN ANY INBOX MESSAGES
 		var userId = options.userId || options.deviceId;
-		var url = 'https://api.tongrd.com/v2/messages?user_id=' + userId;
+		var url = 'https://api.tongdao.io/v2/messages?user_id=' + userId;
 		var appKey = options.appKey;
 		
 		// CHECK FOR REQUIRED userId
@@ -559,6 +503,7 @@ function(DEFAULT_OPTIONS, Cookie, UUID, UAParser, Request, Validator, TdOrder, T
 			async = !!options.async;
 		}
 		var data = {};
+
 		new Request('GET', url, data, appKey, async).send(function(status, response) {
 			try {
 				if (status === 204 || status === 200) {
@@ -575,6 +520,92 @@ function(DEFAULT_OPTIONS, Cookie, UUID, UAParser, Request, Validator, TdOrder, T
 				_log(' Unable to Get Messages: ' + e);
 			}
 		});
+	}
+
+	function displayInAppMessage(callback) {
+
+		// FETCH MESSAGES DATA AND THEN CREATE AND ATTACH RETURNED MESSAGES
+		checkForInAppMessage( function( data ) {
+			// RETURN IF NO MESSAGES
+			if (!data.length) {
+				_log(' No Messages Found');
+				if (callback) callback();
+				return;
+			}
+
+			// LOOPS THROUGH MESSAGES WITH SLIGHT DELAY
+			var messages = data;
+			var messageLength = messages.length;
+			var counter = 0;
+			var firstFull = true;
+
+			// TODO: FOR MULTI-MESSAGE SUPPORT TURN THIS INTO FOR OR FOREACH LOOP
+			(function displayMsg (count) {            
+				// CREATE NEW tdMessage WITH CORRESPONDING DATA
+				var tdMessage = new TdInAppMessage(messages[count]);
+
+				// CHECK FOR CORRESPONDING POSITION'S MESSAGES WRAPPER AND CREATE IF NONE
+				var tdWrapper = document.getElementById('td-wrapper-' + tdMessage.layout);
+				if (!tdWrapper) {
+					tdWrapper = document.createElement('div');
+					tdWrapper.id = 'td-wrapper-' + tdMessage.layout;
+					document.body.appendChild(tdWrapper);
+					// CHECK FOR WRAPPER CSS, IF NONE INJECT CSS STYLE NODE
+					tdMessage.createWrapperEl();
+				}
+
+				// CREATE MESSAGE ELEMENTS
+				var messageEl = tdMessage.createMessageEl();
+
+				// CREATE GLOBAL ACTIONS FOR WEBVIEW AND WRAPPER
+				window.td_wv = {
+					trackReceive: function(){
+						tongdao.track('!receive_message', { '!message_id': tdMessage.mid, '!campaign_id': tdMessage.cid });
+					},
+					trackOpen: function( data ){
+						var href = '';
+						var type = '';
+
+						if ( data ) {
+							href = data.href || '';
+							type = data.type || '';
+						}
+
+						tongdao.track('!open_message', { '!message_id': tdMessage.mid, '!campaign_id': tdMessage.cid });
+						if ( type == 'url' ){
+							// ON URL LINK OPEN IN NEW WINDOW
+							window.open( href, '_blank' );
+						} else {
+							// ON DEEPLINK JUST NAVIGATE TO URL
+							window.location.href = href;
+						}
+					},
+					closeMessage: function(){
+						tdWrapper.removeChild(messageEl);
+						document.body.removeChild(tdWrapper);
+					}
+				};
+
+				// CHECK IF FIRST "full" LAYOUR MESSAGE > PREVENT MORE THAN ONE FROM ATTACHING
+				if( tdMessage.layout!='full' || firstFull ) {
+					if(tdMessage.layout=='full') firstFull = false;
+					// PRELOAD IMAGES AND ATTACH MESSAGE TO DOM
+					tdMessage.attachMessageEl(messageEl, tdWrapper);
+				};
+				
+				// DELAY NEXT MESSAGE ATTACHMENT FOR BETTER UI
+				count++;
+				if (count<messageLength) {
+					setTimeout(function () { 
+						displayMsg(counter);
+					}, 800);
+				} else {
+					if (callback) callback();
+				}
+			})(counter); 
+
+		} );
+
 	}
 
 	return {

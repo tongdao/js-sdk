@@ -21,7 +21,7 @@
     }
     var l = ['init', 'track', 'setUserId', 'setUserProperties', 'setOptOut', 'setVersionName', 'setDomain', 
         'setDeviceId', 'identify', 'identifyBirthday', 'identifyAvatar', 'identifyAge', 'identifyGender',
-        'identifyPhone', 'identifyEmail', 'identifyFullName', 'trackPlaceOrder'];
+        'identifyPhone', 'identifyEmail', 'identifyFullName', 'trackPlaceOrder', 'checkForInAppMessage', 'displayInAppMessage' ];
     for (var p = 0; p < l.length; p++) {
         c(l[p]);
     }
